@@ -129,7 +129,7 @@ const LIQUIDITY_PAIRS = [
 ];
 
 function getRandomMaxSpread() {
-  const min = 0.005;
+  const min = 0.012;
   const max = 0.02;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
