@@ -20,23 +20,42 @@ const colors = {
 };
 
 const logger = {
-  info: (msg) => console.log(`${colors.green}[✓] ${msg}${colors.reset}`),
-  warn: (msg) => console.log(`${colors.yellow}[!] ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}[✗] ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}[+] ${msg}${colors.reset}`),
-  loading: (msg) => console.log(`${colors.cyan}[⟳] ${msg}${colors.reset}`),
-  step: (msg) => console.log(`${colors.white}[➤] ${msg}${colors.reset}`),
-  swap: (msg) => console.log(`${colors.cyan}[↪️] ${msg}${colors.reset}`),
-  swapSuccess: (msg) => console.log(`${colors.green}[✅] ${msg}${colors.reset}`),
-  liquidity: (msg) => console.log(`${colors.cyan}[↪️] ${msg}${colors.reset}`), // Untuk proses liquidity
-  liquiditySuccess: (msg) => console.log(`${colors.green}[✅] ${msg}${colors.reset}`), // Untuk selesai liquidity
-  banner: () => {
-    console.log(`${colors.cyan}${colors.bold}`);
-    console.log('-------------------------------------------------');
-    console.log(' Oroswap zonaairdrop');
-    console.log('-------------------------------------------------');
-    console.log(`${colors.reset}\n`);
+  _ts: () => {
+    const now = new Date();
+    return `[${now.toLocaleTimeString('id-ID', { hour12: false })]`;
   },
+  info: (msg) => console.log(`${colors.cyan}${logger._ts()} [INFO] ${msg}${colors.reset}`),
+  warn: (msg) => console.log(`${colors.yellow}${logger._ts()} [WARN] ${msg}${colors.reset}`),
+  error: (msg) => console.log(`${colors.red}${logger._ts()} [ERR!] ${msg}${colors.reset}`),
+  success: (msg) => console.log(`${colors.green}${logger._ts()} [✔ OK] ${msg}${colors.reset}`),
+  loading: (msg) => console.log(`${colors.cyan}${logger._ts()} [....] ${msg}${colors.reset}`),
+  step: (msg) => console.log(`${colors.white}${logger._ts()} [→] ${msg}${colors.reset}`),
+  swap: (msg) => console.log(`${colors.cyan}${logger._ts()} [↪️ SWAP] ${msg}${colors.reset}`),
+  swapSuccess: (msg) => console.log(`${colors.green}${logger._ts()} [✅ SWAP] ${msg}${colors.reset}`),
+  liquidity: (msg) => console.log(`${colors.cyan}${logger._ts()} [💧 LIQ] ${msg}${colors.reset}`),
+  liquiditySuccess: (msg) => console.log(`${colors.green}${logger._ts()} [✅ LIQ] ${msg}${colors.reset}`),
+
+  banner: () => {
+    console.clear();
+    console.log(`${colors.bold}${colors.cyan}`);
+    console.log('╔══════════════════════════════════════════════════════════════╗');
+    console.log('║██████╗ ██████╗  ██████╗ ███████╗ █████╗ ██████╗ ███████╗██████╗║');
+    console.log('║██╔══██╗██╔══██╗██╔═══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝╚════██╗║');
+    console.log('║██████╔╝██████╔╝██║   ██║███████╗███████║██████╔╝█████╗   █████╔╝║');
+    console.log('║██╔══██╗██╔══██╗██║   ██║╚════██║██╔══██║██╔═══╝ ██╔══╝  ██╔═══╝ ║');
+    console.log('║██║  ██║██║  ██║╚██████╔╝███████║██║  ██║██║     ███████╗███████╗║');
+    console.log('║╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚══════╝║');
+    console.log('╠══════════════════════════════════════════════════════════════╣');
+    console.log('║                 🚀 OROSWAP ZONA-AIRDROP BOT 🚀              ║');
+    console.log('╠══════════════════════════════════════════════════════════════╣');
+    console.log(`║ 🔹 Version  : 2.0.1                                         ║`);
+    console.log(`║ 🔹 Network  : ZigChain Testnet (${RPC_URL})                 ║`);
+    console.log(`║ 🔹 Explorer : ${EXPLORER_URL}                               ║`);
+    console.log(`║ 🔹 Support  : @ZonaAirdr0p                                  ║`);
+    console.log('╚══════════════════════════════════════════════════════════════╝');
+    console.log(`${colors.reset}`);
+    console.log(`${colors.yellow}🚨 Disclaimer: Use at your own risk. The team is not responsible for any losses.${colors.reset}\n`);
+  }
 };
 
 const RPC_URL = 'https://testnet-rpc.zigchain.com';
@@ -154,7 +173,7 @@ function isValidNumber(input) {
 
 function toMicroUnits(amount, denom) {
   const decimals = TOKEN_DECIMALS[denom] || 6;
-  return Math.floor(parseFloat(amount) * Math.pow(10, decimals));
+  return Math.floor(parseFloat(amount) * Math.pow(10, decimals);
 }
 
 function isMnemonic(input) {
