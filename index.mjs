@@ -1,11 +1,8 @@
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
-
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import pkg from '@cosmjs/stargate';
-const { GasPrice, coins } = pkg;
-import pkg2 from '@cosmjs/proto-signing';
-const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
+import { GasPrice, coins } from '@cosmjs/stargate';
+import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 
 dotenv.config();
 
@@ -22,7 +19,7 @@ const colors = {
 const logger = {
   _ts: () => {
     const now = new Date();
-    return `[${now.toLocaleTimeString('id-ID', { hour12: false })]`;
+    return `[${now.toLocaleTimeString('en-US', { hour12: false })}]`;
   },
   info: (msg) => console.log(`${colors.cyan}${logger._ts()} [INFO] ${msg}${colors.reset}`),
   warn: (msg) => console.log(`${colors.yellow}${logger._ts()} [WARN] ${msg}${colors.reset}`),
@@ -49,8 +46,8 @@ const logger = {
     console.log('║                 🚀 OROSWAP ZONA-AIRDROP BOT 🚀              ║');
     console.log('╠══════════════════════════════════════════════════════════════╣');
     console.log(`║ 🔹 Version  : 2.0.1                                         ║`);
-    console.log(`║ 🔹 Network  : ZigChain Testnet (${RPC_URL})                 ║`);
-    console.log(`║ 🔹 Explorer : ${EXPLORER_URL}                               ║`);
+    console.log(`║ 🔹 Network  : ZigChain Testnet                              ║`);
+    console.log(`║ 🔹 Explorer : https://zigscan.org/tx/                       ║`);
     console.log(`║ 🔹 Support  : @ZonaAirdr0p                                  ║`);
     console.log('╚══════════════════════════════════════════════════════════════╝');
     console.log(`${colors.reset}`);
@@ -63,7 +60,6 @@ const API_URL = 'https://testnet-api.zigchain.com';
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
 
-// Extended token symbols including new tokens: STZIG, DYOR, BEE
 const TOKEN_SYMBOLS = {
   'uzig': 'ZIG',
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
@@ -74,7 +70,6 @@ const TOKEN_SYMBOLS = {
   'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee': 'BEE',
 };
 
-// Extended token pairs including new pairs with bidirectional support
 const TOKEN_PAIRS = {
   'ORO/ZIG': {
     contract: 'zig15jqg0hmp9n06q0as7uk3x9xkwr9k3r7yh4ww2uc0hek8zlryrgmsamk4qg',
@@ -108,7 +103,6 @@ const TOKEN_PAIRS = {
   }
 };
 
-// Token decimals including new tokens (assuming 6 decimals like existing tokens)
 const TOKEN_DECIMALS = {
   'uzig': 6,
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 6,
@@ -119,25 +113,18 @@ const TOKEN_DECIMALS = {
   'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee': 6,
 };
 
-// Extended swap sequence with bidirectional swaps for all tokens
 const SWAP_SEQUENCE = [
-  // Original tokens
   { from: 'uzig', to: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro', pair: 'ORO/ZIG' },
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
-  
-  // New tokens - ZIG to token
   { from: 'uzig', to: 'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly', pair: 'STZIG/ZIG' },
   { from: 'uzig', to: 'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor', pair: 'DYOR/ZIG' },
   { from: 'uzig', to: 'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee', pair: 'BEE/ZIG' },
-  
-  // New tokens - token to ZIG (bidirectional)
   { from: 'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly', to: 'uzig', pair: 'STZIG/ZIG' },
   { from: 'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor', to: 'uzig', pair: 'DYOR/ZIG' },
   { from: 'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee', to: 'uzig', pair: 'BEE/ZIG' },
 ];
 
-// Extended liquidity pairs including new one-way pairs
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
@@ -173,7 +160,7 @@ function isValidNumber(input) {
 
 function toMicroUnits(amount, denom) {
   const decimals = TOKEN_DECIMALS[denom] || 6;
-  return Math.floor(parseFloat(amount) * Math.pow(10, decimals);
+  return Math.floor(parseFloat(amount) * Math.pow(10, decimals));
 }
 
 function isMnemonic(input) {
@@ -220,13 +207,13 @@ async function canSwap(pairName, fromDenom, amount) {
   const pair = TOKEN_PAIRS[pairName];
   const poolInfo = await getPoolInfo(pair.contract);
   if (!poolInfo) {
-    logger.warn(`[!] Tidak bisa cek pool info untuk ${pairName}, swap di-skip.`);
+    logger.warn(`[!] Cannot check pool info for ${pairName}, skipping swap.`);
     return false;
   }
   const asset = poolInfo.assets.find(a => a.info.native_token?.denom === fromDenom);
   const poolBalance = asset ? parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[fromDenom]) : 0;
   if (poolBalance <= 10 * amount) {
-    logger.warn(`[!] Pool ${pairName} terlalu kecil (${poolBalance} ${fromDenom}), skip swap.`);
+    logger.warn(`[!] Pool ${pairName} too small (${poolBalance} ${fromDenom}), skipping swap.`);
     return false;
   }
   return true;
@@ -238,7 +225,7 @@ async function getBalance(address, denom) {
     const bal = await client.getBalance(address, denom);
     return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
   } catch (e) {
-    logger.error("Gagal getBalance: " + e.message);
+    logger.error("Failed to get balance: " + e.message);
     return 0;
   }
 }
@@ -270,13 +257,13 @@ async function printWalletInfo(address) {
   logger.info(`Wallet: ${address}`);
   logger.info(`Points: ${points}`);
   const balances = await getAllBalances(address);
-  let balanceStr = '[✓] Balance: ';
+  let balanceStr = 'Balance: ';
   for (const denom of Object.keys(TOKEN_SYMBOLS)) {
     const symbol = TOKEN_SYMBOLS[denom];
     const val = balances[denom];
-    balanceStr += `${symbol} ${val} | `;
+    balanceStr += `${symbol} ${val.toFixed(6)} | `;
   }
-  balanceStr = balanceStr.replace(/\s\|\s$/, ''); // hapus strip di akhir
+  balanceStr = balanceStr.replace(/\s\|\s$/, '');
   logger.info(balanceStr);
   return { points, balances };
 }
@@ -303,7 +290,7 @@ function calculateBeliefPrice(poolInfo, pairName, fromDenom) {
     } else {
       price = amountToken1 / amountToken2;
     }
-    logger.info(`Belief price untuk ${pairName}: ${price}`);
+    logger.info(`Belief price for ${pairName}: ${price}`);
     return price.toFixed(18);
   } catch (err) {
     logger.warn(`Belief price fallback to 1 for ${pairName}`);
@@ -320,18 +307,17 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     }
     const balance = await getBalance(address, fromDenom);
     if (balance < amount) {
-      logger.warn(`[!] Skip swap ${swapNumber}: saldo ${TOKEN_SYMBOLS[fromDenom] || fromDenom} (${balance}) kurang dari swap (${amount})`);
+      logger.warn(`[!] Skip swap ${swapNumber}: insufficient ${TOKEN_SYMBOLS[fromDenom] || fromDenom} balance (${balance}) for swap (${amount})`);
       return null;
     }
     if (!(await canSwap(pairName, fromDenom, amount))) {
-      logger.warn(`[!] Skip swap ${swapNumber}: pool terlalu kecil untuk swap.`);
+      logger.warn(`[!] Skip swap ${swapNumber}: pool too small for swap.`);
       return null;
     }
     const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, { gasPrice: GAS_PRICE });
     const microAmount = toMicroUnits(amount, fromDenom);
     const poolInfo = await getPoolInfo(pair.contract);
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
-    // max_spread dihapus (default ke 0.01 jika diperlukan)
     const maxSpread = "0.005";
     const msg = {
       swap: {
@@ -347,10 +333,10 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
 
-    logger.swap(`Swap ${swapNumber}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
-    logger.info(`Max spread swap: ${maxSpread}`);
+    logger.swap(`Swap ${swapNumber}: ${amount.toFixed(6)} ${fromSymbol} -> ${toSymbol}`);
+    logger.info(`Max spread: ${maxSpread}`);
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
-    logger.swapSuccess(`Complete swap ${swapNumber}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
+    logger.swapSuccess(`Completed swap ${swapNumber}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
   } catch (error) {
     logger.error(`Swap ${swapNumber} failed: ${error.message}`);
@@ -368,14 +354,14 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
     const saldoToken1 = await getBalance(address, pair.token1);
     const saldoZIG = await getBalance(address, 'uzig');
     if (saldoToken1 === 0 || saldoZIG === 0) {
-      logger.warn(`Skip add liquidity ${pairName}: saldo kurang`);
+      logger.warn(`Skip add liquidity ${pairName}: insufficient balance`);
       return null;
     }
     const token1Amount = saldoToken1 * 0.2;
     const zigAmount = saldoZIG * 0.2;
     const poolInfo = await getPoolInfo(pair.contract);
     if (!poolInfo) {
-      logger.warn(`Skip add liquidity ${pairName}: pool info tidak didapat`);
+      logger.warn(`Skip add liquidity ${pairName}: cannot get pool info`);
       return null;
     }
     const poolToken1 = parseFloat(poolInfo.assets[0].amount) / Math.pow(10, TOKEN_DECIMALS[pair.token1]);
@@ -390,7 +376,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
     }
     const microAmountToken1 = toMicroUnits(adjustedToken1, pair.token1);
     const microAmountZIG = toMicroUnits(adjustedZIG, 'uzig');
-    logger.liquidity(`Liquidity ${liquidityNumber}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
+    logger.liquidity(`Liquidity ${liquidityNumber}: Adding (20%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
     const msg = {
       provide_liquidity: {
         assets: [
@@ -406,7 +392,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
     ];
     const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, { gasPrice: GAS_PRICE });
     const result = await client.execute(address, pair.contract, msg, 'auto', `Adding ${pairName} Liquidity`, funds);
-    logger.liquiditySuccess(`Complete add liquidity ${liquidityNumber}: ${pairName} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
+    logger.liquiditySuccess(`Completed add liquidity ${liquidityNumber}: ${pairName} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
   } catch (error) {
     logger.error(`Add liquidity ${liquidityNumber} failed: ${error.message}`);
