@@ -1,109 +1,100 @@
-#!/usr/bin/env node
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
+
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { GasPrice, coins } from '@cosmjs/stargate';
-import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import chalk from 'chalk';
-import figlet from 'figlet';
-import gradient from 'gradient-string';
-import boxen from 'boxen';
-import ora from 'ora';
+import pkg from '@cosmjs/stargate';
+const { GasPrice, coins } = pkg;
+import pkg2 from '@cosmjs/proto-signing';
+const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
+import { HttpBatchClient, JsonRpcClient } from '@cosmjs/tendermint-rpc'; // Added for proxy support
+import { SocksProxyAgent } from 'socks-proxy-agent'; // Added for proxy support
 
-// ================
-// INITIALIZATION
-// ================
 dotenv.config();
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
-// ======================
-// ENHANCED UI COMPONENTS
-// ======================
-const cyberGradient = gradient('purple', 'violet', 'cyan');
-const errorGradient = gradient('red', 'orange');
-const successGradient = gradient('green', 'lime');
-
-const displayHeader = () => {
-  console.clear();
-  console.log(
-    boxen(
-      cyberGradient(
-        figlet.textSync('OROSWAP', {
-          font: 'Cyberlarge',
-          horizontalLayout: 'full'
-        })
-      ),
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'double',
-        borderColor: 'cyan'
-      }
-    )
-  );
-
-  console.log(
-    boxen(
-      chalk.bold.cyan('🚀 ZONA-AIRDROP BOT v2.1 ') + 
-      chalk.yellow('|') +
-      chalk.hex('#BA55D3')(' 🔗 ZigChain Testnet') +
-      chalk.yellow(' |') +
-      chalk.hex('#00FFFF')(' ⚡ By @ZonaAirdr0p'),
-      { padding: 1, borderColor: 'magenta' }
-    )
-  );
+// ANSI escape codes for colors, extended to match colorama more closely
+const colors = {
+  reset: '\x1b[0m',
+  black: '\x1b[30m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  brightBlack: '\x1b[90m', 
+  brightRed: '\x1b[91m',
+  brightGreen: '\x1b[92m', // Corresponds to Fore.GREEN + Style.BRIGHT
+  brightYellow: '\x1b[93m',
+  brightBlue: '\x1b[94m',
+  brightMagenta: '\x1b[95m',
+  brightCyan: '\x1b[96m',
+  brightWhite: '\x1b[97m', // Corresponds to Fore.WHITE + Style.BRIGHT
+  bold: '\x1b[1m',
+  dim: '\x1b[2m',
+  underscore: '\x1b[4m',
+  blink: '\x1b[5m',
+  reverse: '\x1b[7m',
+  hidden: '\x1b[8m',
 };
 
-// =================
-// ENHANCED LOGGER
-// =================
+// Function to clear the console (similar to clear_console in Python)
+const clear_console = () => {
+  process.stdout.write('\x1B[2J\x1B[0f');
+};
+
+// Custom logging function similar to log_message in Python
+const log_message = (msg) => {
+  const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+  console.log(`${colors.brightBlack}[${timestamp}]${colors.reset} ${msg}`);
+};
+
 const logger = {
-  _ts: () => chalk.gray(`[${new Date().toLocaleTimeString('en-US', { hour12: false })}]`),
-
-  info: (msg) => console.log(`${logger._ts()} ${chalk.cyan('›')} ${chalk.cyan(msg)}`),
-
-  warn: (msg) => console.log(`${logger._ts()} ${chalk.yellow('⚠')} ${chalk.yellow(msg)}`),
-
-  error: (msg) => console.log(`${logger._ts()} ${chalk.red('✗')} ${errorGradient(msg)}`),
-
-  success: (msg) => console.log(`${logger._ts()} ${chalk.green('✓')} ${successGradient(msg)}`),
-
-  swap: (msg) => {
-    const spinner = ora({
-      text: `${logger._ts()} ${chalk.hex('#FF00FF')('⟳')} ${chalk.cyan(msg)}`,
-      spinner: 'bouncingBar'
-    }).start();
-    return spinner;
-  },
-
-  liquidity: (msg) => {
-    const spinner = ora({
-      text: `${logger._ts()} ${chalk.hex('#00FFFF')('💧')} ${chalk.cyan(msg)}`,
-      spinner: 'dots'
-    }).start();
-    return spinner;
-  }
+  info: (msg) => log_message(`${colors.green}[✓] ${msg}${colors.reset}`),
+  warn: (msg) => log_message(`${colors.yellow}[!] ${msg}${colors.reset}`),
+  error: (msg) => log_message(`${colors.red}[✗] ${msg}${colors.reset}`),
+  success: (msg) => log_message(`${colors.green}[+] ${msg}${colors.reset}`),
+  loading: (msg) => log_message(`${colors.cyan}[⟳] ${msg}${colors.reset}`),
+  step: (msg) => log_message(`${colors.white}[➤] ${msg}${colors.reset}`),
+  swap: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`),
+  swapSuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`),
+  liquidity: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`), 
+  liquiditySuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`), 
 };
 
-// ==============
-// CONFIGURATION
-// ==============
+// New display_welcome_screen function for ASCII art banner
+const display_welcome_screen = async () => {
+    clear_console();
+    const now = new Date();
+    // Format date as DD.MM.YY
+    const date_str = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+    // Format time as HH:MM:SS
+    const time_str = now.toLocaleTimeString('en-US', { hour12: false });
+    
+    console.log(`${colors.brightGreen}${colors.bold}`);
+    console.log("  ┌─────────────────────────────────┐");
+    console.log("  │     [ O R O S W A P ]      │");
+    console.log(`  │                                 │`);
+    console.log(`  │     ${colors.yellow}${time_str} ${date_str}${colors.brightGreen}      │`);
+    console.log("  │                                 │");
+    console.log("  │   Automated Protocol Utility    │");
+    console.log(`  │ ${colors.brightWhite}   by ZonaAirdrop ${colors.brightGreen}(@ZonaAirdr0p)${colors.reset} │`);
+    console.log("  └─────────────────────────────────┘\n");
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate time.sleep(1)
+};
+
+
 const RPC_URL = 'https://testnet-rpc.zigchain.com';
-const API_URL = 'https://testnet-api.zigchain.com';
+const API_URL = 'https://testnet-api.zigchain.com/'; // Ensure trailing slash
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
 
+// Only token aktif: ZIG, ORO, NFA, CULTCOIN
 const TOKEN_SYMBOLS = {
   'uzig': 'ZIG',
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
-  'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly': 'STZIG',
-  'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor': 'DYOR',
-  'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee': 'BEE',
 };
 
 const TOKEN_PAIRS = {
@@ -121,198 +112,584 @@ const TOKEN_PAIRS = {
     contract: 'zig1j55nw46crxkm03fjdf3cqx3py5cd32jny685x9c3gftfdt2xlvjs63znce',
     token1: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin',
     token2: 'uzig'
-  },
-  'STZIG/ZIG': {
-    contract: 'zig19zqxslng99gw98ku3dyqaqy0c809kwssw7nzhea9x40jwxjugqvs5xaghj',
-    token1: 'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly',
-    token2: 'uzig'
-  },
-  'DYOR/ZIG': {
-    contract: 'zig1us8t6pklp2v2pjqnnedg9wnp3pv50kl448csv0lsuad599ef56jsyvakl9',
-    token1: 'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor',
-    token2: 'uzig'
-  },
-  'BEE/ZIG': {
-    contract: 'zig1r50m5lafnmctat4xpvwdpzqndynlxt2skhr4fhzh76u0qar2y9hqu74u5h',
-    token1: 'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee',
-    token2: 'uzig'
   }
 };
 
+// Token decimals
 const TOKEN_DECIMALS = {
   'uzig': 6,
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 6,
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
-  'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly': 6,
-  'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor': 6,
-  'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee': 6,
 };
 
+// ONLY swap ke: ORO, NFA, CULTCOIN
 const SWAP_SEQUENCE = [
   { from: 'uzig', to: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro', pair: 'ORO/ZIG' },
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
-  { from: 'uzig', to: 'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly', pair: 'STZIG/ZIG' },
-  { from: 'uzig', to: 'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor', pair: 'DYOR/ZIG' },
-  { from: 'uzig', to: 'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee', pair: 'BEE/ZIG' },
-  { from: 'zig1f6dk5csplyvyqvk7uvtsf8yll82lxzmquzctw7wvwajn2a7emmeqzzgvly', to: 'uzig', pair: 'STZIG/ZIG' },
-  { from: 'coin.zig1fepzhtkq2r5gc4prq94yukg6vaqjvkam27gwk3.dyor', to: 'uzig', pair: 'DYOR/ZIG' },
-  { from: 'coin.zig1ptxpjgl3lsxrq99zl6ad2nmrx4lhnhne26m6ys.bee', to: 'uzig', pair: 'BEE/ZIG' },
 ];
 
+// ONLY liquidity ke: ORO/ZIG, NFA/ZIG, CULTCOIN/ZIG
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
-  'CULTCOIN/ZIG',
-  'STZIG/ZIG',
-  'DYOR/ZIG',
-  'BEE/ZIG'
+  'CULTCOIN/ZIG'
 ];
 
-// ==============
-// CORE FUNCTIONS
-// ==============
+// --- Proxy Related Global Variables ---
+let proxyList = [];
+let currentProxyIndex = 0;
+let useProxy = false; 
+// ------------------------------------
+
+function getRandomMaxSpread() {
+  const min = 0.005;
+  const max = 0.02;
+  return (Math.random() * (max - min) + min).toFixed(3);
+}
+
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 function prompt(question) {
   return new Promise((resolve) => {
-    rl.question(chalk.hex('#BA55D3')(question), (answer) => {
+    rl.question(question, (answer) => {
       resolve(answer.trim());
     });
   });
 }
 
+function isValidNumber(input) {
+  const num = parseInt(input);
+  return !isNaN(num) && num > 0;
+}
+
+function toMicroUnits(amount, denom) {
+  const decimals = TOKEN_DECIMALS[denom] || 6;
+  return Math.floor(parseFloat(amount) * Math.pow(10, decimals));
+}
+
+function isMnemonic(input) {
+  const words = input.trim().split(/\s+/);
+  return words.length >= 12 && words.length <= 24 && words.every(word => /^[a-z]+$/.test(word));
+}
+
 async function getWallet(key) {
-  const walletSpinner = ora({
-    text: chalk.hex('#FF00FF')('Decrypting Cyber Wallet...'),
-    spinner: 'hearts'
-  }).start();
+  if (isMnemonic(key)) {
+    return await DirectSecp256k1HdWallet.fromMnemonic(key, { prefix: 'zig' });
+  } else if (/^[0-9a-fA-F]{64}$/.test(key.trim())) {
+    return await DirectSecp256k1Wallet.fromKey(Buffer.from(key.trim(), 'hex'), 'zig');
+  }
+  throw new Error('Invalid mnemonic/private key');
+}
 
-  try {
-    let wallet;
-    if (key.split(' ').length >= 12) {
-      wallet = await DirectSecp256k1HdWallet.fromMnemonic(key, { prefix: 'zig' });
-    } else if (/^[0-9a-fA-F]{64}$/.test(key)) {
-      wallet = await DirectSecp256k1Wallet.fromKey(Buffer.from(key, 'hex'), 'zig');
-    } else {
-      throw new Error('Invalid key format');
+async function getAccountAddress(wallet) {
+  const [account] = await wallet.getAccounts();
+  return account.address;
+}
+
+function getRandomSwapAmount() {
+  const min = 0.0021;
+  const max = 0.0052;
+  return Math.random() * (max - min) + min;
+}
+
+function getRandomDelay(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Function to get the next proxy from the list
+const rotateProxy = () => {
+    if (proxyList.length === 0) {
+        return null;
     }
+    const proxy = proxyList[currentProxyIndex];
+    currentProxyIndex = (currentProxyIndex + 1) % proxyList.length;
+    return proxy;
+};
 
-    walletSpinner.succeed(chalk.green('Wallet Decrypted!'));
-    return wallet;
+// Function to get a cosmjs client, with optional proxy support
+// This function will be used for transactions (signing operations)
+async function getConnectedClient(wallet) {
+    const options = { gasPrice: GAS_PRICE };
+
+    if (useProxy && proxyList.length > 0) {
+        const proxyUrl = rotateProxy();
+        if (proxyUrl) {
+            try {
+                logger.info(`Using proxy for connection: ${proxyUrl}`);
+                // Create a SocksProxyAgent (or HttpsProxyAgent if your proxies are HTTPS)
+                const agent = new SocksProxyAgent(proxyUrl); 
+                
+                // Create HttpBatchClient with the agent
+                // This client is responsible for making the actual HTTP requests
+                const httpBatchClient = new HttpBatchClient(RPC_URL, { agent: agent });
+                
+                // Create JsonRpcClient using the HttpBatchClient
+                const jsonRpcClient = new JsonRpcClient(RPC_URL, httpBatchClient); 
+
+                // Construct SigningCosmWasmClient with the proxy-aware JsonRpcClient
+                return new SigningCosmWasmClient(jsonRpcClient, wallet, options);
+
+            } catch (e) {
+                logger.error(`Failed to connect with proxy ${proxyUrl}: ${e.message}. Attempting without proxy.`);
+                // Fallback to no proxy if agent fails to connect or proxy is invalid
+                return await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, options);
+            }
+        }
+    }
+    // Default connection without proxy if useProxy is false or proxyList is empty
+    return await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, options);
+}
+
+// Function to get a read-only client (e.g., for balance checks, pool info)
+// This client will NOT use proxies unless explicitly configured (separate logic needed for this).
+async function getReadOnlyClient() {
+    return await SigningCosmWasmClient.connect(RPC_URL);
+}
+
+
+async function getPoolInfo(contractAddress) {
+  try {
+    const client = await getReadOnlyClient(); // Using read-only client
+    const poolInfo = await client.queryContractSmart(contractAddress, { pool: {} });
+    return poolInfo;
   } catch (error) {
-    walletSpinner.fail(chalk.red('Wallet Decryption Failed!'));
-    throw error;
+    logger.error(`Failed to get pool info: ${error.message}`);
+    return null;
+  }
+}
+
+async function canSwap(pairName, fromDenom, amount) {
+  const pair = TOKEN_PAIRS[pairName];
+  const poolInfo = await getPoolInfo(pair.contract);
+  if (!poolInfo) {
+    logger.warn(`[!] Tidak bisa cek pool info untuk ${pairName}, swap di-skip.`);
+    return false;
+  }
+  const asset = poolInfo.assets.find(a => a.info.native_token?.denom === fromDenom);
+  const poolBalance = asset ? parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[fromDenom]) : 0;
+  if (poolBalance <= 10 * amount) { // Arbitrary threshold
+    logger.warn(`[!] Pool ${pairName} terlalu kecil (${poolBalance} ${TOKEN_SYMBOLS[fromDenom]}), skip swap.`);
+    return false;
+  }
+  return true;
+}
+
+async function getBalance(address, denom) {
+  try {
+    const client = await getReadOnlyClient(); // Using read-only client
+    const bal = await client.getBalance(address, denom);
+    return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
+  } catch (e) {
+    logger.error("Gagal getBalance: " + e.message);
+    return 0;
+  }
+}
+
+async function getUserPoints(address) {
+  try {
+    // API calls for points are separate from blockchain client,
+    // they don't use cosmjs. Proxying this would require other Node.js solutions (e.g., global-agent)
+    const response = await fetch(`${API_URL}user/${address}`);
+    if (!response.ok) return 0;
+    const data = await response.json();
+    if (data && typeof data.point !== 'undefined') return data.point;
+    if (data && data.data && typeof data.data.point !== 'undefined') return data.data.point;
+    return 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+async function getAllBalances(address) {
+  const denoms = Object.keys(TOKEN_SYMBOLS);
+  const balances = {};
+  for (const denom of denoms) {
+    balances[denom] = await getBalance(address, denom);
+  }
+  return balances;
+}
+
+async function printWalletInfo(address) {
+  const points = await getUserPoints(address);
+  logger.info(`Wallet: ${address}`);
+  logger.info(`Points: ${points}`);
+  const balances = await getAllBalances(address);
+  let balanceStr = '[✓] Balance: ';
+  for (const denom of Object.keys(TOKEN_SYMBOLS)) {
+    const symbol = TOKEN_SYMBOLS[denom];
+    const val = balances[denom];
+    balanceStr += `${symbol} ${val} | `;
+  }
+  balanceStr = balanceStr.replace(/\s\|\s$/, ''); // Remove trailing '|'
+  logger.info(balanceStr);
+  return { points, balances };
+}
+
+function calculateBeliefPrice(poolInfo, pairName, fromDenom) {
+  try {
+    if (!poolInfo || !poolInfo.assets || poolInfo.assets.length !== 2) {
+      logger.warn(`Belief price fallback to 1 for ${pairName}`);
+      return "1";
+    }
+    const pair = TOKEN_PAIRS[pairName];
+    let amountToken1 = 0, amountToken2 = 0;
+    poolInfo.assets.forEach(asset => {
+      if (asset.info.native_token && asset.info.native_token.denom === pair.token1) {
+        amountToken1 = parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[pair.token1]);
+      }
+      if (asset.info.native_token && asset.info.native_token.denom === pair.token2) {
+        amountToken2 = parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[pair.token2]);
+      }
+    });
+    let price;
+    if (fromDenom === pair.token1) {
+      price = amountToken2 / amountToken1;
+    } else {
+      price = amountToken1 / amountToken2;
+    }
+    logger.info(`Belief price untuk ${pairName}: ${price}`);
+    return price.toFixed(18);
+  } catch (err) {
+    logger.warn(`Belief price fallback to 1 for ${pairName}`);
+    return "1";
   }
 }
 
 async function performSwap(wallet, address, amount, pairName, swapNumber, fromDenom, toDenom) {
-  const swapSpinner = logger.swap(`SWAP ${swapNumber}: ${amount.toFixed(6)} ${TOKEN_SYMBOLS[fromDenom]} → ${TOKEN_SYMBOLS[toDenom]}`);
-  
   try {
     const pair = TOKEN_PAIRS[pairName];
-    const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, { gasPrice: GAS_PRICE });
-    const microAmount = toMicroUnits(amount, fromDenom);
+    if (!pair.contract) {
+      logger.error(`Contract address not set for ${pairName}`);
+      return null;
+    }
+    const balance = await getBalance(address, fromDenom);
+    if (balance < amount) {
+      logger.warn(`[!] Skip swap ${swapNumber}: saldo ${TOKEN_SYMBOLS[fromDenom] || fromDenom} (${balance}) kurang dari swap (${amount})`);
+      return null;
+    }
+    if (!(await canSwap(pairName, fromDenom, amount))) {
+      logger.warn(`[!] Skip swap ${swapNumber}: pool terlalu kecil untuk swap.`);
+      return null;
+    }
     
+    // Get client with proxy support for signing transaction
+    const client = await getConnectedClient(wallet); 
+
+    const microAmount = toMicroUnits(amount, fromDenom);
+    const poolInfo = await getPoolInfo(pair.contract);
+    const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
+    
+    // Increased slippage tolerance to mitigate 'max spread limit' error
+    const slippageTolerance = "0.01"; // 1% slippage tolerance
+
     const msg = {
       swap: {
-        belief_price: "1",
-        max_spread: "0.005",
+        belief_price: beliefPrice,
+        max_spread: slippageTolerance, // Using slippageTolerance here
         offer_asset: {
           amount: microAmount.toString(),
           info: { native_token: { denom: fromDenom } },
         },
       },
     };
-
     const funds = coins(microAmount, fromDenom);
+    const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
+    const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
+
+    logger.swap(`Swap ${swapNumber}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
+    logger.info(`Slippage tolerance: ${slippageTolerance}`);
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
-    
-    swapSpinner.succeed(
-      chalk.green(`SWAP ${swapNumber} SUCCESS! `) +
-      chalk.cyan(`${amount.toFixed(6)} ${TOKEN_SYMBOLS[fromDenom]} → ${TOKEN_SYMBOLS[toDenom]}`) +
-      chalk.gray(` | TX: ${EXPLORER_URL}${result.transactionHash}`)
-    );
-    
-    process.stdout.write('\x07'); // Success beep
+    logger.swapSuccess(`Complete swap ${swapNumber}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
   } catch (error) {
-    swapSpinner.fail(chalk.red(`SWAP FAILED: ${error.message}`));
-    process.stdout.write('\x07\x07'); // Error beep
+    logger.error(`Swap ${swapNumber} failed: ${error.message}`);
     return null;
   }
 }
 
-// [Additional core functions (getBalance, addLiquidity, etc.) remain the same as original]
-
-// =============
-// MAIN FLOW
-// =============
-async function main() {
+async function addLiquidity(wallet, address, pairName, liquidityNumber) {
   try {
-    displayHeader();
+    const pair = TOKEN_PAIRS[pairName];
+    if (!pair.contract) {
+      logger.error(`Contract address not set for ${pairName}`);
+      return null;
+    }
+    const saldoToken1 = await getBalance(address, pair.token1);
+    const saldoZIG = await getBalance(address, 'uzig');
+    if (saldoToken1 === 0 || saldoZIG === 0) {
+      logger.warn(`Skip add liquidity ${pairName}: saldo kurang`);
+      return null;
+    }
+    const token1Amount = saldoToken1 * 0.05; // Use 5% of balance
+    const zigAmount = saldoZIG * 0.05; // Use 5% of balance
 
-    // Wallet Setup
-    const key = await prompt('🔑 Enter private key/mnemonic: ');
-    const wallet = await getWallet(key);
-    const address = (await wallet.getAccounts())[0].address;
-
-    // Display Wallet Info
-    console.log(
-      boxen(
-        chalk.hex('#00FFFF')('🖥️  WALLET: ') + chalk.bold(address) + '\n\n' +
-        chalk.hex('#FF00FF')('⚡ BALANCE: ') + '\n' +
-        Object.entries(await getAllBalances(address))
-          .map(([denom, val]) => 
-            `  ${chalk.cyan(TOKEN_SYMBOLS[denom])}: ${chalk.yellow(val.toFixed(6))}`
-          )
-          .join('\n'),
-        { padding: 1, borderColor: 'magenta' }
-      )
-    );
-
-    // Get User Input
-    const swapCount = parseInt(await prompt('🔄 Number of swap cycles: '));
-    const liqCount = parseInt(await prompt('💧 Number of liquidity cycles: '));
-    const delay = parseInt(await prompt('⏱️  Delay between cycles (minutes): '));
-
-    // Execute Operations
-    for (let i = 0; i < Math.max(swapCount, liqCount); i++) {
-      console.log(boxen(chalk.hex('#BA55D3')(`🚀 CYCLE ${i+1}/${Math.max(swapCount, liqCount)}`), { padding: 1 }));
-      
-      if (i < swapCount) {
-        await executeSwapSequence(wallet, address, 1);
-      }
-      
-      if (i < liqCount) {
-        await executeLiquiditySequence(wallet, address, 1);
-      }
-
-      if (i < Math.max(swapCount, liqCount) - 1) {
-        const waitSpinner = ora({
-          text: chalk.hex('#00FFFF')(`⏳ Waiting ${delay} minutes...`),
-          spinner: 'clock'
-        }).start();
-        
-        await new Promise(resolve => setTimeout(resolve, delay * 60 * 1000));
-        waitSpinner.succeed(chalk.green('Resuming operations...'));
-      }
+    const poolInfo = await getPoolInfo(pair.contract);
+    if (!poolInfo) {
+      logger.warn(`Skip add liquidity ${pairName}: pool info tidak didapat`);
+      return null;
+    }
+    
+    // Determine which asset is token1 and which is token2 in the poolInfo
+    let poolToken1Asset, poolZIGAsset;
+    if (poolInfo.assets[0].info.native_token?.denom === pair.token1) {
+        poolToken1Asset = poolInfo.assets[0];
+        poolZIGAsset = poolInfo.assets[1];
+    } else {
+        poolToken1Asset = poolInfo.assets[1];
+        poolZIGAsset = poolInfo.assets[0];
     }
 
-    logger.success('✨ ALL OPERATIONS COMPLETED!');
+    const poolToken1 = parseFloat(poolToken1Asset.amount) / Math.pow(10, TOKEN_DECIMALS[pair.token1]);
+    const poolZIG = parseFloat(poolZIGAsset.amount) / Math.pow(10, TOKEN_DECIMALS['uzig']);
+    
+    // Calculate ratio based on current pool
+    const ratio = poolToken1 / poolZIG; 
+
+    let adjustedToken1 = token1Amount;
+    let adjustedZIG = zigAmount;
+
+    // Adjust amounts to maintain ratio, prioritizing the smaller resulting token amount
+    if (token1Amount / zigAmount > ratio) {
+        // If our token1 amount is proportionally too high
+        adjustedToken1 = zigAmount * ratio;
+    } else {
+        // If our ZIG amount is proportionally too high
+        adjustedZIG = token1Amount / ratio;
+    }
+    
+    // Ensure we don't try to add more than we have
+    adjustedToken1 = Math.min(adjustedToken1, saldoToken1);
+    adjustedZIG = Math.min(adjustedZIG, saldoZIG);
+
+    const microAmountToken1 = toMicroUnits(adjustedToken1, pair.token1);
+    const microAmountZIG = toMicroUnits(adjustedZIG, 'uzig');
+
+    if (microAmountToken1 === 0 || microAmountZIG === 0) {
+        logger.warn(`Skip add liquidity ${pairName}: calculated amounts are zero.`);
+        return null;
+    }
+
+    logger.liquidity(`Liquidity ${liquidityNumber}: Adding (5% approx) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
+    
+    const msg = {
+      provide_liquidity: {
+        assets: [
+          { amount: microAmountToken1.toString(), info: { native_token: { denom: pair.token1 } } },
+          { amount: microAmountZIG.toString(), info: { native_token: { denom: 'uzig' } } },
+        ],
+        slippage_tolerance: "0.01", // Slippage tolerance for liquidity
+      },
+    };
+    const funds = [
+      { denom: pair.token1, amount: microAmountToken1.toString() },
+      { denom: 'uzig', amount: microAmountZIG.toString() }
+    ];
+
+    // Get client with proxy support for signing transaction
+    const client = await getConnectedClient(wallet);
+
+    const result = await client.execute(address, pair.contract, msg, 'auto', `Adding ${pairName} Liquidity`, funds);
+    logger.success(`Liquidity added for ${pairName}! Tx: ${EXPLORER_URL}${result.transactionHash}`);
+    logger.liquiditySuccess(`Add Liquidity Completed for ${pairName}`);
+    return result;
   } catch (error) {
-    console.log(
-      boxen(
-        chalk.red('💀 CRITICAL ERROR 💀\n\n') + 
-        error.message,
-        { padding: 1, borderColor: 'red' }
-      )
-    );
-  } finally {
-    rl.close();
+    logger.error(`Add liquidity failed for ${pairName}: ${error.message}`);
+    return null;
   }
 }
 
-// ==============
-// START BOT
-// ==============
-main().catch(console.error);
+function displayCountdown(hours, minutes, seconds) {
+  const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  process.stdout.write(`\r${colors.cyan}[🧭] Next execution in: ${timeStr}${colors.reset}`);
+}
+
+async function executeTransactionCycle(
+  wallet,
+  address,
+  walletNumber,
+  numSwaps,
+  numAddLiquidity,
+  minDelay, // Consolidated delay
+  maxDelay  // Consolidated delay
+) {
+  log_message(`${colors.blue}=== Processing Account [${address.slice(0, 6)}...${address.slice(-6)}] ===${colors.reset}`);
+  await printWalletInfo(address);
+
+  let swapNo = 1;
+  for (let i = 0; i < numSwaps; i++) {
+    const idx = i % SWAP_SEQUENCE.length;
+    const { from, to, pair } = SWAP_SEQUENCE[idx];
+    const swapAmount = getRandomSwapAmount();
+    await performSwap(wallet, address, swapAmount, pair, swapNo++, from, to);
+    const delay = getRandomDelay(minDelay, maxDelay); // Use consolidated delay
+    await new Promise(resolve => setTimeout(resolve, delay * 1000));
+  }
+  let liquidityNo = 1;
+  for (let i = 0; i < numAddLiquidity; i++) {
+    const pairName = LIQUIDITY_PAIRS[i % LIQUIDITY_PAIRS.length];
+    await addLiquidity(wallet, address, pairName, liquidityNo++);
+    const liquidityDelay = getRandomDelay(minDelay, maxDelay); // Use consolidated delay
+    await new Promise(resolve => setTimeout(resolve, liquidityDelay * 1000));
+  }
+  log_message(`${colors.blue}=== Account Processing Finished ===${colors.reset}\n`);
+}
+
+async function executeAllWallets(
+  keys,
+  numSwaps,
+  numAddLiquidity,
+  minDelay, // Consolidated delay
+  maxDelay  // Consolidated delay
+) {
+  for (let walletIndex = 0; walletIndex < keys.length; walletIndex++) {
+    const key = keys[walletIndex];
+    try {
+      const wallet = await getWallet(key);
+      const address = await getAccountAddress(wallet);
+      await executeTransactionCycle(
+        wallet,
+        address,
+        walletIndex + 1,
+        numSwaps,
+        numAddLiquidity,
+        minDelay, // Pass consolidated delay
+        maxDelay  // Pass consolidated delay
+      );
+    } catch (error) {
+      logger.error(`Error processing wallet ${walletIndex + 1}: ${error.message}`);
+    }
+  }
+}
+
+async function startDailyCountdown(
+  keys,
+  numSwaps,
+  numAddLiquidity,
+  minDelay, // Consolidated delay
+  maxDelay  // Consolidated delay
+) {
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  while (true) {
+    const startTime = Date.now();
+    const endTime = startTime + TWENTY_FOUR_HOURS;
+    while (Date.now() < endTime) {
+      const remaining = endTime - Date.now();
+      const hours = Math.floor(remaining / (1000 * 60 * 60));
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      displayCountdown(hours, minutes, seconds);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    console.log('\n');
+    logger.success('🧭 24 hours completed! Starting new transaction cycle...\n');
+    await executeAllWallets(
+      keys,
+      numSwaps,
+      numAddLiquidity,
+      minDelay, // Pass consolidated delay
+      maxDelay  // Pass consolidated delay
+    );
+  }
+}
+
+async function main() {
+  await display_welcome_screen(); // Call the new welcome screen
+
+  const keys = Object.keys(process.env)
+    .filter((key) => key.startsWith('PRIVATE_KEY_'))
+    .map((key) => process.env[key]);
+  if (keys.length === 0) {
+    logger.error('No private keys or mnemonics found in .env file');
+    rl.close();
+    return;
+  }
+  let numSwaps;
+  while (true) {
+    const input = await prompt(`${colors.green + colors.bold}Number of swaps per wallet: ${colors.reset}`);
+    if (isValidNumber(input)) {
+      numSwaps = parseInt(input);
+      break;
+    }
+    logger.error('Invalid input. Please enter a positive number.');
+  }
+  let numAddLiquidity;
+  while (true) {
+    const input = await prompt(`${colors.green + colors.bold}Number of add liquidity per wallet: ${colors.reset}`);
+    if (isValidNumber(input)) {
+      numAddLiquidity = parseInt(input);
+      break;
+    }
+    logger.error('Invalid input. Please enter a positive number.');
+  }
+  
+  // Consolidated delay inputs
+  let minDelay, maxDelay;
+  while (true) {
+    const input = await prompt(`${colors.green + colors.bold}Min delay between transactions (seconds): ${colors.reset}`);
+    if (isValidNumber(input)) {
+      minDelay = parseInt(input);
+      break;
+    }
+    logger.error('Invalid input. Please enter a positive number.');
+  }
+  while (true) {
+    const input = await prompt(`${colors.green + colors.bold}Max delay between transactions (seconds): ${colors.reset}`);
+    if (isValidNumber(input) && parseInt(input) >= minDelay) {
+      maxDelay = parseInt(input);
+      break;
+    }
+    logger.error(`Invalid input. Please enter a number greater than or equal to ${minDelay}.`);
+  }
+
+  // Proxy support choice
+  // ProxyList and useProxy are now global variables
+  while (true) {
+    const choiceInput = await prompt(`${colors.green + colors.bold}Choose proxy type: \n1. Private Proxy\n2. No Proxy\nEnter choice (1 or 2): ${colors.reset}`);
+    if (choiceInput === '1') {
+      useProxy = true; // Set global flag to enable proxy logic
+      const proxiesInput = await prompt(`${colors.green + colors.bold}Enter proxies (comma-separated, e.g., socks5://user:pass@ip:port or http://user:pass@ip:port): ${colors.reset}`);
+      proxyList = proxiesInput.split(',').map(p => p.trim()).filter(p => p);
+      if (proxyList.length === 0) {
+        logger.warn('No proxies entered. Proceeding without proxies.');
+        useProxy = false;
+      } else {
+        logger.info(`Using proxies: ${proxyList.join(', ')}. Proxy will rotate per transaction.`);
+        logger.info(`[i] Remember to install required modules:`);
+        logger.info(`    Run: npm install socks-proxy-agent @cosmjs/tendermint-rpc`);
+      }
+      break;
+    } else if (choiceInput === '2') {
+      logger.info('Proceeding without proxies.');
+      useProxy = false; // Ensure global flag is false
+      break;
+    } else {
+      logger.error('Invalid choice. Please enter 1 or 2.');
+    }
+  }
+
+  console.log();
+  await executeAllWallets(
+    keys,
+    numSwaps,
+    numAddLiquidity,
+    minDelay, // Pass consolidated delay
+    maxDelay  // Pass consolidated delay
+  );
+  await startDailyCountdown(
+    keys,
+    numSwaps,
+    numAddLiquidity,
+    minDelay, // Pass consolidated delay
+    maxDelay  // Pass consolidated delay
+  );
+}
+
+main().catch((error) => {
+  logger.error(`Bot failed: ${error.message}`);
+  rl.close();
+});
