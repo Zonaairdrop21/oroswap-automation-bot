@@ -483,7 +483,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
           { amount: microAmountToken1.toString(), info: { native_token: { denom: pair.token1 } } },
           { amount: microAmountZIG.toString(), info: { native_token: { denom: 'uzig' } } },
         ],
-        slippage_tolerance: "0.01", // Slippage tolerance for liquidity
+        slippage_tolerance: "0.1", // Slippage tolerance for liquidity
       },
     };
     const funds = [
