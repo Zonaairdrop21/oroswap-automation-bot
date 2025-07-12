@@ -386,7 +386,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
     
     // Increased slippage tolerance to mitigate 'max spread limit' error
-    const slippageTolerance = "0.01"; // 1% slippage tolerance
+    const slippageTolerance = "0.1"; // 1% slippage tolerance
 
     const msg = {
       swap: {
