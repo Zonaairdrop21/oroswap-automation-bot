@@ -145,8 +145,8 @@ let useProxy = false;
 // ------------------------------------
 
 function getRandomMaxSpread() {
-  const min = 0.005;
-  const max = 0.02;
+  const min = 0.3;
+  const max = 0.31;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
 
@@ -193,7 +193,7 @@ async function getAccountAddress(wallet) {
 }
 
 function getRandomSwapAmount() {
-  const min = 0.0021;
+  const min = 0.0041;
   const max = 0.0052;
   return Math.random() * (max - min) + min;
 }
