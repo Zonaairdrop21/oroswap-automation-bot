@@ -6,8 +6,9 @@ import pkg from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg;
 import pkg2 from '@cosmjs/proto-signing';
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
-import { HttpBatchClient, JsonRpcClient } from '@cosmjs/tendermint-rpc'; // Added for proxy support
-import { SocksProxyAgent } from 'socks-proxy-agent'; // Added for proxy support
+import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Corrected import for CommonJS module
+const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc; // Destructure from default export
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
 
