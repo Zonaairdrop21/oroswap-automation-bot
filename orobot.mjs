@@ -61,16 +61,16 @@ const displayHeader = () => {
 // ENHANCED LOGGER
 // =================
 const logger = {
-  _ts: () => chalk.gray(`[${new Date().toLocaleTimeString('en-US', { hour12: false })]`),
+  _ts: () => chalk.gray(`[${new Date().toLocaleTimeString('en-US', { hour12: false })}]`),
 
   info: (msg) => console.log(`${logger._ts()} ${chalk.cyan('›')} ${chalk.cyan(msg)}`),
-  
+
   warn: (msg) => console.log(`${logger._ts()} ${chalk.yellow('⚠')} ${chalk.yellow(msg)}`),
-  
+
   error: (msg) => console.log(`${logger._ts()} ${chalk.red('✗')} ${errorGradient(msg)}`),
-  
+
   success: (msg) => console.log(`${logger._ts()} ${chalk.green('✓')} ${successGradient(msg)}`),
-  
+
   swap: (msg) => {
     const spinner = ora({
       text: `${logger._ts()} ${chalk.hex('#FF00FF')('⟳')} ${chalk.cyan(msg)}`,
@@ -78,7 +78,7 @@ const logger = {
     }).start();
     return spinner;
   },
-  
+
   liquidity: (msg) => {
     const spinner = ora({
       text: `${logger._ts()} ${chalk.hex('#00FFFF')('💧')} ${chalk.cyan(msg)}`,
