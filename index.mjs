@@ -481,10 +481,10 @@ async function executeAllWallets(
     if (useProxy && proxies.length > 0) {
       const proxy = proxies[walletIndex % proxies.length];
       const agent = new SocksProxyAgent(`socks5://${proxy}`);
-      rpcClient = new HttpBatchClient(RPC_URL, { agent });
+      rpcClient = new pkg_tendermintRpc.HttpBatchClient(RPC_URL, { agent }); // Corrected instantiation
       logger.info(`Using proxy ${proxy} for wallet ${walletIndex + 1}`);
     } else {
-        rpcClient = new JsonRpcClient(RPC_URL);
+        rpcClient = new pkg_tendermintRpc.JsonRpcClient(RPC_URL); // Corrected instantiation
     }
 
     try {
@@ -512,7 +512,7 @@ async function executeAllWallets(
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
             // Check if disconnect method exists before calling
-            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) {
+            if (rpcClient instanceof pkg_tendermintRpc.HttpBatchClient || rpcClient instanceof pkg_tendermintRpc.JsonRpcClient) {
                  await rpcClient.disconnect();
             }
         }
