@@ -7,10 +7,7 @@ import pkg from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg;
 import pkg2 from '@cosmjs/proto-signing';
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
-import pkg_tendermintRpc from '@cosmjs/tendermint-rpc';
-// Pastikan untuk selalu menggunakan variabel lokal ini untuk HttpBatchClient dan JsonRpcClient
-const HttpBatchClient = pkg_tendermintRpc.default?.HttpBatchClient || pkg_tendermintRpc.HttpBatchClient;
-const JsonRpcClient = pkg_tendermintRpc.default?.JsonRpcClient || pkg_tendermintRpc.JsonRpcClient;
+import { HttpBatchClient, JsonRpcClient } from '@cosmjs/tendermint-rpc'; // Mengimpor langsung kelas-kelasnya
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -483,10 +480,10 @@ async function executeAllWallets(
     if (useProxy && proxies.length > 0) {
       const proxy = proxies[walletIndex % proxies.length];
       const agent = new SocksProxyAgent(`socks5://${proxy}`);
-      rpcClient = new HttpBatchClient(RPC_URL, { agent }); // Menggunakan variabel lokal HttpBatchClient
+      rpcClient = new HttpBatchClient(RPC_URL, { agent }); // Menggunakan named import HttpBatchClient
       logger.info(`Using proxy ${proxy} for wallet ${walletIndex + 1}`);
     } else {
-        rpcClient = new JsonRpcClient(RPC_URL); // Menggunakan variabel lokal JsonRpcClient
+        rpcClient = new JsonRpcClient(RPC_URL); // Menggunakan named import JsonRpcClient
     }
 
     try {
@@ -514,7 +511,7 @@ async function executeAllWallets(
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
             // Check if disconnect method exists before calling
-            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) { // Menggunakan variabel lokal
+            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) { // Menggunakan named import
                  await rpcClient.disconnect();
             }
         }
