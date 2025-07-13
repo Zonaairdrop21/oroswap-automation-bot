@@ -208,7 +208,7 @@ async function getBalance(address, denom, rpcClient) {
     const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, rpcClient);
     const bal = await client.getBalance(address, denom);
     return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
-  } catch (e) {
+  [cite_start]} [cite: 41]catch (e) {
     logger.error("Gagal getBalance: " + e.message);
     return 0;
   }
@@ -222,7 +222,7 @@ async function getUserPoints(address) {
     if (data && typeof data.point !== 'undefined') return data.point;
     if (data && data.data && typeof data.data.point !== 'undefined') return data.data.point;
     return 0;
-  } catch (e) {
+  [cite_start]} [cite: 44, 45]catch (e) {
     return 0;
   }
 }
@@ -374,7 +374,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
       return null;
     }
 
-    logger.liquidity(`Liquidity ${liquidityNumber}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
+    logger.liquidity(`Liquidity ${colors.magenta}${liquidityNumber}${colors.cyan}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
     const msg = {
       provide_liquidity: {
         assets: [
