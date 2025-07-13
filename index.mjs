@@ -7,8 +7,10 @@ import pkg from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg;
 import pkg2 from '@cosmjs/proto-signing';
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
-import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Corrected import for CommonJS module
-// Removed destructuring: const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc;
+import pkg_tendermintRpc from '@cosmjs/tendermint-rpc';
+// Pastikan untuk selalu menggunakan variabel lokal ini untuk HttpBatchClient dan JsonRpcClient
+const HttpBatchClient = pkg_tendermintRpc.default?.HttpBatchClient || pkg_tendermintRpc.HttpBatchClient;
+const JsonRpcClient = pkg_tendermintRpc.default?.JsonRpcClient || pkg_tendermintRpc.JsonRpcClient;
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -481,10 +483,10 @@ async function executeAllWallets(
     if (useProxy && proxies.length > 0) {
       const proxy = proxies[walletIndex % proxies.length];
       const agent = new SocksProxyAgent(`socks5://${proxy}`);
-      rpcClient = new pkg_tendermintRpc.default.HttpBatchClient(RPC_URL, { agent }); // Corrected instantiation
+      rpcClient = new HttpBatchClient(RPC_URL, { agent }); // Menggunakan variabel lokal HttpBatchClient
       logger.info(`Using proxy ${proxy} for wallet ${walletIndex + 1}`);
     } else {
-        rpcClient = new pkg_tendermintRpc.default.JsonRpcClient(RPC_URL); // Corrected instantiation
+        rpcClient = new JsonRpcClient(RPC_URL); // Menggunakan variabel lokal JsonRpcClient
     }
 
     try {
@@ -512,7 +514,7 @@ async function executeAllWallets(
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
             // Check if disconnect method exists before calling
-            if (rpcClient instanceof pkg_tendermintRpc.default.HttpBatchClient || rpcClient instanceof pkg_tendermintRpc.default.JsonRpcClient) {
+            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) { // Menggunakan variabel lokal
                  await rpcClient.disconnect();
             }
         }
