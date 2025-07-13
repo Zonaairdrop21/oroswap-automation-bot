@@ -7,8 +7,11 @@ import pkg_stargate from '@cosmjs/stargate'; // Rename to avoid conflict with pk
 const { GasPrice, coins } = pkg_stargate;
 import pkg_proto_signing from '@cosmjs/proto-signing'; // Rename to avoid conflict
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg_proto_signing;
-import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Mengimpor seluruh modul sebagai default export
-const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc; // Mendapatkan kelas dari default export
+
+// Import modul tendermint-rpc sebagai default export, lalu coba destructure dari default atau langsung dari objek modul
+import pkg_tendermintRpc from '@cosmjs/tendermint-rpc';
+const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc.default || pkg_tendermintRpc;
+
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
