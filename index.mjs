@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
-import { readFile } from 'node:fs/promises';
+import { readFile } => from 'node:fs/promises';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import pkg_stargate from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg_stargate;
@@ -130,7 +130,7 @@ const rl = createInterface({
 });
 function prompt(question) {
   return new Promise((resolve) => {
-    [cite_start]rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => { // Added blue color to prompt [cite: 24]
+    rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => { // Added blue color to prompt
       resolve(answer.trim());
     });
   });
@@ -316,10 +316,10 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const funds = coins(microAmount, fromDenom);
     const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
-    logger.swap(`Swap ${colors.magenta}${swapNumber}${colors.cyan}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`); [cite_start]// Added magenta color to swap number [cite: 68]
-    logger.info(`Max spread swap: ${colors.magenta}${maxSpread}${colors.reset}`); [cite_start]// Added magenta color to max spread [cite: 66]
+    logger.swap(`Swap ${colors.magenta}${swapNumber}${colors.cyan}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
+    logger.info(`Max spread swap: ${colors.magenta}${maxSpread}${colors.reset}`);
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
-    logger.swapSuccess(`Complete swap ${colors.magenta}${swapNumber}${colors.green}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`); [cite_start]// Added magenta color to swap number [cite: 69]
+    logger.swapSuccess(`Complete swap ${colors.magenta}${swapNumber}${colors.green}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
   } catch (error) {
     logger.error(`Swap ${swapNumber} failed: ${error.message}`);
@@ -374,7 +374,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
       return null;
     }
 
-    logger.liquidity(`Liquidity ${colors.magenta}${liquidityNumber}${colors.cyan}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`); // Added magenta color to liquidity number
+    logger.liquidity(`Liquidity ${colors.magenta}${liquidityNumber}${colors.cyan}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
     const msg = {
       provide_liquidity: {
         assets: [
@@ -594,9 +594,9 @@ async function main() {
   let useProxy = false;
   let proxies = [];
   while (true) {
-    console.log(`${colors.blue}Choose proxy type:${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
-    console.log(`${colors.blue}1. Private Proxy (from proxy.txt)${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
-    console.log(`${colors.blue}2. No Proxy${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
+    console.log(`${colors.blue}Choose proxy type:${colors.reset}`);
+    console.log(`${colors.blue}1. Private Proxy (from proxy.txt)${colors.reset}`);
+    console.log(`${colors.blue}2. No Proxy${colors.reset}`);
     const choice = await prompt('Enter choice (1 or 2): ');
     if (choice === '1') {
       proxies = await loadProxies();
