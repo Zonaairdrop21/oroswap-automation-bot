@@ -8,7 +8,7 @@ const { GasPrice, coins } = pkg;
 import pkg2 from '@cosmjs/proto-signing';
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
 import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Corrected import for CommonJS module
-const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc; // Destructure from default export
+// Removed destructuring: const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc;
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -481,10 +481,10 @@ async function executeAllWallets(
     if (useProxy && proxies.length > 0) {
       const proxy = proxies[walletIndex % proxies.length];
       const agent = new SocksProxyAgent(`socks5://${proxy}`);
-      rpcClient = new pkg_tendermintRpc.HttpBatchClient(RPC_URL, { agent }); // Corrected instantiation
+      rpcClient = new pkg_tendermintRpc.default.HttpBatchClient(RPC_URL, { agent }); // Corrected instantiation
       logger.info(`Using proxy ${proxy} for wallet ${walletIndex + 1}`);
     } else {
-        rpcClient = new pkg_tendermintRpc.JsonRpcClient(RPC_URL); // Corrected instantiation
+        rpcClient = new pkg_tendermintRpc.default.JsonRpcClient(RPC_URL); // Corrected instantiation
     }
 
     try {
@@ -512,7 +512,7 @@ async function executeAllWallets(
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
             // Check if disconnect method exists before calling
-            if (rpcClient instanceof pkg_tendermintRpc.HttpBatchClient || rpcClient instanceof pkg_tendermintRpc.JsonRpcClient) {
+            if (rpcClient instanceof pkg_tendermintRpc.default.HttpBatchClient || rpcClient instanceof pkg_tendermintRpc.default.JsonRpcClient) {
                  await rpcClient.disconnect();
             }
         }
