@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
+import { readFile } from 'node:fs/promises'; // Import readFile for file operations
 
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import pkg from '@cosmjs/stargate';
@@ -23,7 +24,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   white: '\x1b[37m',
-  brightBlack: '\x1b[90m', 
+  brightBlack: '\x1b[90m',
   brightRed: '\x1b[91m',
   brightGreen: '\x1b[92m', // Corresponds to Fore.GREEN + Style.BRIGHT
   brightYellow: '\x1b[93m',
@@ -59,8 +60,8 @@ const logger = {
   step: (msg) => log_message(`${colors.white}[➤] ${msg}${colors.reset}`),
   swap: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`),
   swapSuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`),
-  liquidity: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`), 
-  liquiditySuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`), 
+  liquidity: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`),
+  liquiditySuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`),
 };
 
 // New display_welcome_screen function for ASCII art banner
@@ -71,7 +72,7 @@ const display_welcome_screen = async () => {
     const date_str = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
     // Format time as HH:MM:SS
     const time_str = now.toLocaleTimeString('en-US', { hour12: false });
-    
+
     console.log(`${colors.brightGreen}${colors.bold}`);
     console.log("  ┌─────────────────────────────────┐");
     console.log("  │     [ O R O S W A P ]      │");
@@ -97,7 +98,6 @@ const TOKEN_SYMBOLS = {
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
 };
-
 const TOKEN_PAIRS = {
   'ORO/ZIG': {
     contract: 'zig15jqg0hmp9n06q0as7uk3x9xkwr9k3r7yh4ww2uc0hek8zlryrgmsamk4qg',
@@ -115,7 +115,6 @@ const TOKEN_PAIRS = {
     token2: 'uzig'
   }
 };
-
 // Token decimals
 const TOKEN_DECIMALS = {
   'uzig': 6,
@@ -123,25 +122,23 @@ const TOKEN_DECIMALS = {
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
 };
-
 // ONLY swap ke: ORO, NFA, CULTCOIN
 const SWAP_SEQUENCE = [
   { from: 'uzig', to: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro', pair: 'ORO/ZIG' },
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
 ];
-
 // ONLY liquidity ke: ORO/ZIG, NFA/ZIG, CULTCOIN/ZIG
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
   'CULTCOIN/ZIG'
 ];
-
 // --- Proxy Related Global Variables ---
 let proxyList = [];
 let currentProxyIndex = 0;
-let useProxy = false; 
+let useProxy = false;
+let removeFailedProxy = false; // New global variable to control removing failed proxies
 // ------------------------------------
 
 function getRandomMaxSpread() {
@@ -154,7 +151,6 @@ const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
 function prompt(question) {
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
@@ -202,8 +198,32 @@ function getRandomDelay(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Function to get the next proxy from the list
-const rotateProxy = () => {
+// Function to read proxies from proxy.txt
+async function loadProxiesFromFile() {
+  try {
+    const data = await readFile('proxy.txt', 'utf8');
+    const proxies = data.split('\n')
+                      .map(line => line.trim())
+                      .filter(line => line.length > 0 && !line.startsWith('#')); // Filter out empty lines and comments
+    if (proxies.length > 0) {
+      logger.info(`Loaded ${proxies.length} proxies from proxy.txt`);
+      return proxies;
+    } else {
+      logger.warn('proxy.txt is empty or contains no valid proxies.');
+      return [];
+    }
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      logger.warn('proxy.txt not found. Please create it if you intend to use proxies.');
+    } else {
+      logger.error(`Error reading proxy.txt: ${error.message}`);
+    }
+    return [];
+  }
+}
+
+// Function to get the next proxy from the list and handle rotation/removal
+const getNextProxy = () => {
     if (proxyList.length === 0) {
         return null;
     }
@@ -213,41 +233,50 @@ const rotateProxy = () => {
 };
 
 // Function to get a cosmjs client, with optional proxy support
-// This function will be used for transactions (signing operations)
 async function getConnectedClient(wallet) {
     const options = { gasPrice: GAS_PRICE };
 
     if (useProxy && proxyList.length > 0) {
-        const proxyUrl = rotateProxy();
-        if (proxyUrl) {
-            try {
-                logger.info(`Using proxy for connection: ${proxyUrl}`);
-                // Create a SocksProxyAgent (or HttpsProxyAgent if your proxies are HTTPS)
-                const agent = new SocksProxyAgent(proxyUrl); 
-                
-                // Create HttpBatchClient with the agent
-                // This client is responsible for making the actual HTTP requests
-                const httpBatchClient = new HttpBatchClient(RPC_URL, { agent: agent });
-                
-                // Create JsonRpcClient using the HttpBatchClient
-                const jsonRpcClient = new JsonRpcClient(RPC_URL, httpBatchClient); 
+        let attempts = 0;
+        const initialProxyCount = proxyList.length; // Number of proxies at the start of connection attempt
 
-                // Construct SigningCosmWasmClient with the proxy-aware JsonRpcClient
-                return new SigningCosmWasmClient(jsonRpcClient, wallet, options);
-
-            } catch (e) {
-                logger.error(`Failed to connect with proxy ${proxyUrl}: ${e.message}. Attempting without proxy.`);
-                // Fallback to no proxy if agent fails to connect or proxy is invalid
+        while (attempts < initialProxyCount) { // Try each proxy at most once based on initial list
+            const proxyUrl = getNextProxy();
+            if (!proxyUrl) {
+                logger.warn('No more proxies to try. Attempting connection without proxy.');
                 return await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, options);
             }
+
+            logger.info(`Attempting connection with proxy: ${proxyUrl}`);
+            try {
+                const agent = new SocksProxyAgent(proxyUrl);
+                const httpBatchClient = new HttpBatchClient(RPC_URL, { agent: agent });
+                const jsonRpcClient = new JsonRpcClient(RPC_URL, httpBatchClient);
+                return new SigningCosmWasmClient(jsonRpcClient, wallet, options);
+            } catch (e) {
+                logger.error(`Failed to connect with proxy ${proxyUrl}: ${e.message}`);
+                if (removeFailedProxy) {
+                    const failedIndex = proxyList.indexOf(proxyUrl);
+                    if (failedIndex > -1) {
+                        proxyList.splice(failedIndex, 1); // Remove the failed proxy
+                        logger.warn(`Proxy ${proxyUrl} removed from list due to failure.`);
+                        // Adjust currentProxyIndex if the removed proxy was before it
+                        if (failedIndex < currentProxyIndex) {
+                            currentProxyIndex--;
+                        }
+                    }
+                }
+                attempts++;
+            }
         }
+        // If all proxies failed, or if proxyList became empty during attempts
+        logger.error('All configured proxies failed to connect. Attempting connection without proxy.');
     }
-    // Default connection without proxy if useProxy is false or proxyList is empty
+    // Default connection without proxy if useProxy is false or proxyList is empty or all proxies failed
     return await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, options);
 }
 
 // Function to get a read-only client (e.g., for balance checks, pool info)
-// This client will NOT use proxies unless explicitly configured (separate logic needed for this).
 async function getReadOnlyClient() {
     return await SigningCosmWasmClient.connect(RPC_URL);
 }
@@ -255,7 +284,7 @@ async function getReadOnlyClient() {
 
 async function getPoolInfo(contractAddress) {
   try {
-    const client = await getReadOnlyClient(); // Using read-only client
+    const client = await getReadOnlyClient();
     const poolInfo = await client.queryContractSmart(contractAddress, { pool: {} });
     return poolInfo;
   } catch (error) {
@@ -280,30 +309,69 @@ async function canSwap(pairName, fromDenom, amount) {
   return true;
 }
 
+// Function to get account balance with retry mechanism
 async function getBalance(address, denom) {
-  try {
-    const client = await getReadOnlyClient(); // Using read-only client
-    const bal = await client.getBalance(address, denom);
-    return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
-  } catch (e) {
-    logger.error("Gagal getBalance: " + e.message);
-    return 0;
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  while (attempt < MAX_RETRIES) {
+    try {
+      const client = await getReadOnlyClient();
+      const bal = await client.getBalance(address, denom);
+      return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
+    } catch (e) {
+      logger.warn(`Percobaan ${attempt + 1}/${MAX_RETRIES} untuk mendapatkan saldo gagal: ${e.message}`);
+      if ((e.message.includes('429') || e.message.includes('Bad status')) && attempt < MAX_RETRIES - 1) {
+        const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff (1s, 2s, 4s)
+        logger.info(`Mencoba lagi dalam ${delayMs / 1000} detik...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        attempt++;
+      } else {
+        logger.error(`Gagal mendapatkan saldo setelah beberapa percobaan: ${e.message}`);
+        return 0;
+      }
+    }
   }
+  logger.error("Gagal mendapatkan saldo setelah beberapa percobaan.");
+  return 0;
 }
 
+// Function to get user points with retry mechanism
 async function getUserPoints(address) {
-  try {
-    // API calls for points are separate from blockchain client,
-    // they don't use cosmjs. Proxying this would require other Node.js solutions (e.g., global-agent)
-    const response = await fetch(`${API_URL}user/${address}`);
-    if (!response.ok) return 0;
-    const data = await response.json();
-    if (data && typeof data.point !== 'undefined') return data.point;
-    if (data && data.data && typeof data.data.point !== 'undefined') return data.data.point;
-    return 0;
-  } catch (e) {
-    return 0;
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  while (attempt < MAX_RETRIES) {
+    try {
+      const response = await fetch(`${API_URL}user/${address}`);
+      if (!response.ok) {
+        if ((response.status === 429 || response.status >= 500) && attempt < MAX_RETRIES - 1) { // Also retry on 5xx errors
+          logger.warn(`Percobaan ${attempt + 1}/${MAX_RETRIES} untuk mendapatkan poin pengguna gagal: Status ${response.status}`);
+          const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff
+          logger.info(`Mencoba lagi dalam ${delayMs / 1000} detik...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          attempt++;
+          continue; // Continue to the next attempt
+        }
+        return 0; // Return 0 if not ok and not 429/5xx or last attempt
+      }
+      const data = await response.json();
+      if (data && typeof data.point !== 'undefined') return data.point;
+      if (data && data.data && typeof data.data.point !== 'undefined') return data.data.point;
+      return 0;
+    } catch (e) {
+      logger.warn(`Percobaan ${attempt + 1}/${MAX_RETRIES} untuk mendapatkan poin pengguna gagal: ${e.message}`);
+      if (attempt < MAX_RETRIES - 1) {
+        const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff
+        logger.info(`Mencoba lagi dalam ${delayMs / 1000} detik...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        attempt++;
+      } else {
+        logger.error(`Gagal mendapatkan poin pengguna setelah beberapa percobaan: ${e.message}`);
+        return 0;
+      }
+    }
   }
+  logger.error("Gagal mendapatkan poin pengguna setelah beberapa percobaan.");
+  return 0;
 }
 
 async function getAllBalances(address) {
@@ -377,16 +445,16 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
       logger.warn(`[!] Skip swap ${swapNumber}: pool terlalu kecil untuk swap.`);
       return null;
     }
-    
+
     // Get client with proxy support for signing transaction
-    const client = await getConnectedClient(wallet); 
+    const client = await getConnectedClient(wallet);
 
     const microAmount = toMicroUnits(amount, fromDenom);
     const poolInfo = await getPoolInfo(pair.contract);
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
-    
+
     // Increased slippage tolerance to mitigate 'max spread limit' error
-    const slippageTolerance = "0.1"; // 1% slippage tolerance
+    const slippageTolerance = "0.1"; // 10% slippage tolerance
 
     const msg = {
       swap: {
@@ -434,7 +502,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
       logger.warn(`Skip add liquidity ${pairName}: pool info tidak didapat`);
       return null;
     }
-    
+
     // Determine which asset is token1 and which is token2 in the poolInfo
     let poolToken1Asset, poolZIGAsset;
     if (poolInfo.assets[0].info.native_token?.denom === pair.token1) {
@@ -447,9 +515,9 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
 
     const poolToken1 = parseFloat(poolToken1Asset.amount) / Math.pow(10, TOKEN_DECIMALS[pair.token1]);
     const poolZIG = parseFloat(poolZIGAsset.amount) / Math.pow(10, TOKEN_DECIMALS['uzig']);
-    
+
     // Calculate ratio based on current pool
-    const ratio = poolToken1 / poolZIG; 
+    const ratio = poolToken1 / poolZIG;
 
     let adjustedToken1 = token1Amount;
     let adjustedZIG = zigAmount;
@@ -462,7 +530,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
         // If our ZIG amount is proportionally too high
         adjustedZIG = token1Amount / ratio;
     }
-    
+
     // Ensure we don't try to add more than we have
     adjustedToken1 = Math.min(adjustedToken1, saldoToken1);
     adjustedZIG = Math.min(adjustedZIG, saldoZIG);
@@ -476,7 +544,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
     }
 
     logger.liquidity(`Liquidity ${liquidityNumber}: Adding (5% approx) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
-    
+
     const msg = {
       provide_liquidity: {
         assets: [
@@ -599,7 +667,7 @@ async function startDailyCountdown(
 }
 
 async function main() {
-  await display_welcome_screen(); // Call the new welcome screen
+  await display_welcome_screen();
 
   const keys = Object.keys(process.env)
     .filter((key) => key.startsWith('PRIVATE_KEY_'))
@@ -627,7 +695,7 @@ async function main() {
     }
     logger.error('Invalid input. Please enter a positive number.');
   }
-  
+
   // Consolidated delay inputs
   let minDelay, maxDelay;
   while (true) {
@@ -647,21 +715,28 @@ async function main() {
     logger.error(`Invalid input. Please enter a number greater than or equal to ${minDelay}.`);
   }
 
-  // Proxy support choice
-  // ProxyList and useProxy are now global variables
+  // Proxy support choice - now loads from file
   while (true) {
-    const choiceInput = await prompt(`${colors.green + colors.bold}Choose proxy type: \n1. Private Proxy\n2. No Proxy\nEnter choice (1 or 2): ${colors.reset}`);
+    const choiceInput = await prompt(`${colors.green + colors.bold}Choose proxy type: \n1. Private Proxy (from proxy.txt)\n2. No Proxy\nEnter choice (1 or 2): ${colors.reset}`);
     if (choiceInput === '1') {
       useProxy = true; // Set global flag to enable proxy logic
-      const proxiesInput = await prompt(`${colors.green + colors.bold}Enter proxies (comma-separated, e.g., socks5://user:pass@ip:port or http://user:pass@ip:port): ${colors.reset}`);
-      proxyList = proxiesInput.split(',').map(p => p.trim()).filter(p => p);
+      proxyList = await loadProxiesFromFile(); // Load proxies from file
       if (proxyList.length === 0) {
-        logger.warn('No proxies entered. Proceeding without proxies.');
+        logger.warn('No proxies loaded from proxy.txt. Proceeding without proxies.');
         useProxy = false;
       } else {
-        logger.info(`Using proxies: ${proxyList.join(', ')}. Proxy will rotate per transaction.`);
+        logger.info(`Using ${proxyList.length} proxies from proxy.txt. Proxy will rotate per transaction.`);
         logger.info(`[i] Remember to install required modules:`);
         logger.info(`    Run: npm install socks-proxy-agent @cosmjs/tendermint-rpc`);
+
+        // Ask about removing failed proxies
+        const removeFailedInput = await prompt(`${colors.green + colors.bold}Rotate Invalid Proxy? (y/n): ${colors.reset}`);
+        removeFailedProxy = removeFailedInput.toLowerCase() === 'y';
+        if (removeFailedProxy) {
+            logger.info('Failed proxies will be removed from the list.');
+        } else {
+            logger.info('Failed proxies will NOT be removed from the list.');
+        }
       }
       break;
     } else if (choiceInput === '2') {
@@ -678,15 +753,15 @@ async function main() {
     keys,
     numSwaps,
     numAddLiquidity,
-    minDelay, // Pass consolidated delay
-    maxDelay  // Pass consolidated delay
+    minDelay,
+    maxDelay
   );
   await startDailyCountdown(
     keys,
     numSwaps,
     numAddLiquidity,
-    minDelay, // Pass consolidated delay
-    maxDelay  // Pass consolidated delay
+    minDelay,
+    maxDelay
   );
 }
 
