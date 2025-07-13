@@ -87,7 +87,7 @@ const display_welcome_screen = async () => {
 
 
 const RPC_URL = 'https://testnet-rpc.zigchain.com';
-const API_URL = 'https://testnet-api.zigchain.com';
+const API_URL = 'https://testnet-api.zigchain.com/'; // Ensure trailing slash
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
 
@@ -97,10 +97,10 @@ const TOKEN_SYMBOLS = {
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
-  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 'RIFLE', // Added RIFLE
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 'MOON',   // Added MOON
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 'ALPHA', // Added ALPHA
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 'ZMZIG', // Added ZMZIG
+  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 'RIFLE',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 'MOON',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 'ALPHA',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 'ZMZIG',
 };
 const TOKEN_PAIRS = {
   'ORO/ZIG': {
@@ -118,22 +118,22 @@ const TOKEN_PAIRS = {
     token1: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin',
     token2: 'uzig'
   },
-  'RIFLE/ZIG': { // Added RIFLE/ZIG pair
+  'RIFLE/ZIG': {
     contract: 'zig1ykrfqhhexvr5mhru8xkt6tadt9hfweafzwuwhl5kmscal82769qq2syfqa',
     token1: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle',
     token2: 'uzig'
   },
-  'MOON/ZIG': { // Added MOON/ZIG pair
+  'MOON/ZIG': {
     contract: 'zig1eqggyhjj23cl3r7j5apnyg7mxrm639zeh46xq24eeccdh922mxjqq0kd4h',
     token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon',
     token2: 'uzig'
   },
-  'ALPHA/ZIG': { // Added ALPHA/ZIG pair
+  'ALPHA/ZIG': {
     contract: 'zig1c0m3myg8gr7shg4dra7cprvkha5serfsduet2td6zdj9ern82w4qwx06vc',
     token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha',
     token2: 'uzig'
   },
-  'ZMZIG/ZIG': { // Added ZMZIG/ZIG pair
+  'ZMZIG/ZIG': {
     contract: 'zig15meu4rk66v0wlp59tuewng4rpfvepagpfd8uq9w59rd77ce56dnqftmxn2',
     token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig',
     token2: 'uzig'
@@ -145,10 +145,10 @@ const TOKEN_DECIMALS = {
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 6,
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
-  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 6, // Added RIFLE decimals
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 6,   // Added MOON decimals
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 6, // Added ALPHA decimals
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 6, // Added ZMZIG decimals
+  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 6,
 };
 // ONLY swap ke: ORO, NFA, CULTCOIN, RIFLE, MOON, ALPHA, ZMZIG and vice versa
 const SWAP_SEQUENCE = [
@@ -158,24 +158,24 @@ const SWAP_SEQUENCE = [
   { from: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', to: 'uzig', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
   { from: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', to: 'uzig', pair: 'CULTCOIN/ZIG' },
-  { from: 'uzig', to: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', pair: 'RIFLE/ZIG' }, // Added ZIG to RIFLE swap
-  { from: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', to: 'uzig', pair: 'RIFLE/ZIG' }, // Added RIFLE to ZIG swap
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', pair: 'MOON/ZIG' },   // Added ZIG to MOON swap
-  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', to: 'uzig', pair: 'MOON/ZIG' },     // Added MOON to ZIG swap
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', pair: 'ALPHA/ZIG' }, // Added ZIG to ALPHA swap
-  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', to: 'uzig', pair: 'ALPHA/ZIG' },   // Added ALPHA to ZIG swap
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', pair: 'ZMZIG/ZIG' }, // Added ZIG to ZMZIG swap
-  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', to: 'uzig', pair: 'ZMZIG/ZIG' },   // Added ZMZIG to ZIG swap
+  { from: 'uzig', to: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', pair: 'RIFLE/ZIG' },
+  { from: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', to: 'uzig', pair: 'RIFLE/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', pair: 'MOON/ZIG' },
+  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', to: 'uzig', pair: 'MOON/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', pair: 'ALPHA/ZIG' },
+  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', to: 'uzig', pair: 'ALPHA/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', pair: 'ZMZIG/ZIG' },
+  { from: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', to: 'uzig', pair: 'ZMZIG/ZIG' },
 ];
 // ONLY liquidity ke: ORO/ZIG, NFA/ZIG, CULTCOIN/ZIG, RIFLE/ZIG, MOON/ZIG, ALPHA/ZIG, ZMZIG/ZIG
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
   'CULTCOIN/ZIG',
-  'RIFLE/ZIG', // Added RIFLE/ZIG liquidity
-  'MOON/ZIG',   // Added MOON/ZIG liquidity
-  'ALPHA/ZIG', // Added ALPHA/ZIG liquidity
-  'ZMZIG/ZIG', // Added ZMZIG/ZIG liquidity
+  'RIFLE/ZIG',
+  'MOON/ZIG',
+  'ALPHA/ZIG',
+  'ZMZIG/ZIG',
 ];
 // --- Proxy Related Global Variables ---
 let proxyList = [];
@@ -497,7 +497,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
 
     // Increased slippage tolerance to mitigate 'max spread limit' error
-    const slippageTolerance = "0.01"; // 10% slippage tolerance
+    const slippageTolerance = "0.1"; // 10% slippage tolerance
 
     const msg = {
       swap: {
@@ -514,7 +514,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
 
     logger.swap(`Swap ${swapNumber}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
-    logger.info(`Slippage tolerance: ${slippageTolerance}`);
+    // logger.info(`Slippage tolerance: ${slippageTolerance}`); // Removed this line as requested
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
     logger.swapSuccess(`Complete swap ${swapNumber}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
