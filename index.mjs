@@ -185,8 +185,8 @@ let removeFailedProxy = false; // New global variable to control removing failed
 // ------------------------------------
 
 function getRandomMaxSpread() {
-  const min = 0.5;
-  const max = 0.6;
+  const min = 0.005;
+  const max = 0.006;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
 
@@ -232,8 +232,8 @@ async function getAccountAddress(wallet) {
 }
 
 function getRandomSwapAmount() {
-  const min = 0.01;
-  const max = 0.013;
+  const min = 0.005;
+  const max = 0.006;
   return Math.random() * (max - min) + min;
 }
 
@@ -497,12 +497,12 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
 
     // Increased slippage tolerance to mitigate 'max spread limit' error
-    const slippageTolerance = "0.1"; // 10% slippage tolerance
+    const slippageTolerance = "0.5"; // 10% slippage tolerance
 
     const msg = {
       swap: {
         belief_price: beliefPrice,
-        max_spread: 0.5, // Using slippageTolerance here
+        max_spread: 0.005, // Using slippageTolerance here
         offer_asset: {
           amount: microAmount.toString(),
           info: { native_token: { denom: fromDenom } },
@@ -594,7 +594,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
           { amount: microAmountToken1.toString(), info: { native_token: { denom: pair.token1 } } },
           { amount: microAmountZIG.toString(), info: { native_token: { denom: 'uzig' } } },
         ],
-        slippage_tolerance: "0.01", // Slippage tolerance for liquidity
+        slippage_tolerance: "0.005", // Slippage tolerance for liquidity
       },
     };
     const funds = [
