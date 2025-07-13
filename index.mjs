@@ -232,8 +232,8 @@ async function getAccountAddress(wallet) {
 }
 
 function getRandomSwapAmount() {
-  const min = 0.0041;
-  const max = 0.0052;
+  const min = 0.01;
+  const max = 0.013;
   return Math.random() * (max - min) + min;
 }
 
@@ -502,7 +502,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const msg = {
       swap: {
         belief_price: beliefPrice,
-        max_spread: slippageTolerance, // Using slippageTolerance here
+        max_spread: 0.5, // Using slippageTolerance here
         offer_asset: {
           amount: microAmount.toString(),
           info: { native_token: { denom: fromDenom } },
