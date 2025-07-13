@@ -78,7 +78,7 @@ const display_welcome_screen = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 };
 
-const RPC_URL = 'https://testnet-rpc.zigchain.com';
+const RPC_URL = 'https://rpc.zigscan.net/';
 const API_URL = 'https://testnet-api.zigchain.com';
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
@@ -128,7 +128,7 @@ const LIQUIDITY_PAIRS = [
 ];
 
 function getRandomMaxSpread() {
-  const min = 0.005;
+  const min = 0.01;
   const max = 0.02;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
