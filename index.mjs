@@ -185,8 +185,8 @@ let removeFailedProxy = false; // New global variable to control removing failed
 // ------------------------------------
 
 function getRandomMaxSpread() {
-  const min = 0.3;
-  const max = 0.31;
+  const min = 0.5;
+  const max = 0.6;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
 
