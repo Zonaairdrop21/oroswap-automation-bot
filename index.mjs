@@ -3,11 +3,12 @@ import { createInterface } from 'node:readline';
 import { readFile } from 'node:fs/promises'; // Import readFile for file operations
 
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import pkg from '@cosmjs/stargate';
-const { GasPrice, coins } = pkg;
-import pkg2 from '@cosmjs/proto-signing';
-const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
-import { HttpBatchClient, JsonRpcClient } from '@cosmjs/tendermint-rpc'; // Mengimpor langsung kelas-kelasnya
+import pkg_stargate from '@cosmjs/stargate'; // Rename to avoid conflict with pkg_tendermintRpc
+const { GasPrice, coins } = pkg_stargate;
+import pkg_proto_signing from '@cosmjs/proto-signing'; // Rename to avoid conflict
+const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg_proto_signing;
+import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Mengimpor seluruh modul sebagai default export
+const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc; // Mendapatkan kelas dari default export
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -480,10 +481,10 @@ async function executeAllWallets(
     if (useProxy && proxies.length > 0) {
       const proxy = proxies[walletIndex % proxies.length];
       const agent = new SocksProxyAgent(`socks5://${proxy}`);
-      rpcClient = new HttpBatchClient(RPC_URL, { agent }); // Menggunakan named import HttpBatchClient
+      rpcClient = new HttpBatchClient(RPC_URL, { agent });
       logger.info(`Using proxy ${proxy} for wallet ${walletIndex + 1}`);
     } else {
-        rpcClient = new JsonRpcClient(RPC_URL); // Menggunakan named import JsonRpcClient
+        rpcClient = new JsonRpcClient(RPC_URL);
     }
 
     try {
@@ -510,8 +511,7 @@ async function executeAllWallets(
       logger.error(`Error processing wallet ${walletIndex + 1}: ${error.message}`);
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
-            // Check if disconnect method exists before calling
-            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) { // Menggunakan named import
+            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) {
                  await rpcClient.disconnect();
             }
         }
@@ -614,28 +614,8 @@ async function main() {
     logger.error(`Invalid input. Please enter a number greater than or equal to ${swapMinDelay}.`);
   }
   let liquidityMinDelay, liquidityMaxDelay;
-    // For simplicity, using the same delays for liquidity as swaps based on the prompt's output.
-    // If separate delays are desired, uncomment and use the following prompts:
     liquidityMinDelay = swapMinDelay;
     liquidityMaxDelay = swapMaxDelay;
-    /*
-  while (true) {
-    const input = await prompt('Min delay between add liquidity (seconds): ');
-    if (isValidNumber(input)) {
-      liquidityMinDelay = parseInt(input);
-      break;
-    }
-    logger.error('Invalid input. Please enter a positive number.');
-  }
-  while (true) {
-    const input = await prompt('Max delay between add liquidity (seconds): ');
-    if (isValidNumber(input) && parseInt(input) >= liquidityMinDelay) {
-      liquidityMaxDelay = parseInt(input);
-      break;
-    }
-    logger.error(`Invalid input. Please enter a number greater than or equal to ${liquidityMinDelay}.`);
-  }
-    */
 
   let useProxy = false;
   let proxies = [];
