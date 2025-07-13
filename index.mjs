@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
-import { readFile } => from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import pkg_stargate from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg_stargate;
@@ -130,7 +130,7 @@ const rl = createInterface({
 });
 function prompt(question) {
   return new Promise((resolve) => {
-    rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => { // Added blue color to prompt
+    rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => {
       resolve(answer.trim());
     });
   });
@@ -391,7 +391,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
     const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, wallet, { gasPrice: GAS_PRICE });
     const result = await client.execute(address, pair.contract, msg, 'auto', `Adding ${pairName} Liquidity`, funds);
     logger.success(`Liquidity added for ${pairName}! Tx: ${EXPLORER_URL}${result.transactionHash}`);
-    logger.liquiditySuccess(`Add Liquidity Completed for ${pairName}`);
+    logger.liquiditySuccess(`Add Liquidity ${colors.magenta}${liquidityNumber}${colors.green} Completed for ${pairName}`);
     return result;
   } catch (error) {
     logger.error(`Add liquidity failed for ${pairName}: ${error.message}`);
