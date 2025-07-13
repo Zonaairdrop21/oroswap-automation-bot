@@ -11,7 +11,6 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
 
-// ANSI escape codes for colors
 const colors = {
   reset: '\x1b[0m',
   black: '\x1b[30m',
@@ -37,7 +36,6 @@ const colors = {
   reverse: '\x1b[7m',
   hidden: '\x1b[8m',
 };
-
 const clear_console = () => {
   process.stdout.write('\x1B[2J\x1B[0f');
 };
@@ -59,7 +57,6 @@ const logger = {
   liquidity: (msg) => log_message(`${colors.cyan}[↪️] ${msg}${colors.reset}`),
   liquiditySuccess: (msg) => log_message(`${colors.green}[✅] ${msg}${colors.reset}`),
 };
-
 const display_welcome_screen = async () => {
     clear_console();
     const now = new Date();
@@ -77,23 +74,16 @@ const display_welcome_screen = async () => {
     console.log("  └─────────────────────────────────┘\n");
     await new Promise(resolve => setTimeout(resolve, 1000));
 };
-
 const RPC_URL = 'https://rpc.zigscan.net/';
 const API_URL = 'https://testnet-api.zigchain.com';
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
-
 const TOKEN_SYMBOLS = {
   'uzig': 'ZIG',
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
-  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 'RIFLE',
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 'MOON',
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 'ALPHA',
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 'ZMZIG',
 };
-
 const TOKEN_PAIRS = {
   'ORO/ZIG': {
     contract: 'zig15jqg0hmp9n06q0as7uk3x9xkwr9k3r7yh4ww2uc0hek8zlryrgmsamk4qg',
@@ -109,58 +99,23 @@ const TOKEN_PAIRS = {
     contract: 'zig1j55nw46crxkm03fjdf3cqx3py5cd32jny685x9c3gftfdt2xlvjs63znce',
     token1: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin',
     token2: 'uzig'
-  },
-  'RIFLE/ZIG': {
-    contract: 'zig1ykrfqhhexvr5mhru8xkt6tadt9hfweafzwuwhl5kmscal82769qq2syfqa',
-    token1: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle',
-    token2: 'uzig'
-  },
-  'MOON/ZIG': {
-    contract: 'zig1eqggyhjj23cl3r7j5apnyg7mxrm639zeh46xq24eeccdh922mxjqq0kd4h',
-    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon',
-    token2: 'uzig'
-  },
-  'ALPHA/ZIG': {
-    contract: 'zig1c0m3myg8gr7shg4dra7cprvkha5serfsduet2td6zdj9ern82w4qwx06vc',
-    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha',
-    token2: 'uzig'
-  },
-  'ZMZIG/ZIG': {
-    contract: 'zig15meu4rk66v0wlp59tuewng4rpfvepagpfd8uq9w59rd77ce56dnqftmxn2',
-    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig',
-    token2: 'uzig'
-  },
+  }
 };
-
 const TOKEN_DECIMALS = {
   'uzig': 6,
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 6,
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
-  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 6,
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 6,
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 6,
-  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 6,
 };
-
 const SWAP_SEQUENCE = [
   { from: 'uzig', to: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro', pair: 'ORO/ZIG' },
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
-  { from: 'uzig', to: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', pair: 'RIFLE/ZIG' },
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', pair: 'MOON/ZIG' },
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', pair: 'ALPHA/ZIG' },
-  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', pair: 'ZMZIG/ZIG' },
 ];
-
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
-  'CULTCOIN/ZIG',
-  'RIFLE/ZIG',
-  'MOON/ZIG',
-  'ALPHA/ZIG',
-  'ZMZIG/ZIG'
+  'CULTCOIN/ZIG'
 ];
 
 function getRandomMaxSpread() {
@@ -173,10 +128,9 @@ const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
 function prompt(question) {
   return new Promise((resolve) => {
-    rl.question(question, (answer) => {
+    rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => {
       resolve(answer.trim());
     });
   });
@@ -262,7 +216,7 @@ async function getBalance(address, denom, rpcClient) {
 
 async function getUserPoints(address) {
   try {
-    const response = await fetch(`${API_URL}user/${address}`);
+    const response = await fetch(`${API_URL}/user/${address}`);
     if (!response.ok) return 0;
     const data = await response.json();
     if (data && typeof data.point !== 'undefined') return data.point;
@@ -362,10 +316,10 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const funds = coins(microAmount, fromDenom);
     const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
-    logger.swap(`Swap ${swapNumber}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
-    logger.info(`Max spread swap: ${maxSpread}`);
+    logger.swap(`Swap ${colors.magenta}${swapNumber}${colors.cyan}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
+    logger.info(`Max spread swap: ${colors.magenta}${maxSpread}${colors.reset}`);
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
-    logger.swapSuccess(`Complete swap ${swapNumber}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
+    logger.swapSuccess(`Complete swap ${colors.magenta}${swapNumber}${colors.green}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
     return result;
   } catch (error) {
     logger.error(`Swap ${swapNumber} failed: ${error.message}`);
@@ -640,9 +594,9 @@ async function main() {
   let useProxy = false;
   let proxies = [];
   while (true) {
-    console.log('Choose proxy type:');
-    console.log('1. Private Proxy (from proxy.txt)');
-    console.log('2. No Proxy');
+    console.log(`${colors.blue}Choose proxy type:${colors.reset}`);
+    console.log(`${colors.blue}1. Private Proxy (from proxy.txt)${colors.reset}`);
+    console.log(`${colors.blue}2. No Proxy${colors.reset}`);
     const choice = await prompt('Enter choice (1 or 2): ');
     if (choice === '1') {
       proxies = await loadProxies();
