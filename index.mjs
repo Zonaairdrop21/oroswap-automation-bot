@@ -88,6 +88,10 @@ const TOKEN_SYMBOLS = {
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
+  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 'RIFLE',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 'MOON',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 'ALPHA',
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 'ZMZIG',
 };
 
 const TOKEN_PAIRS = {
@@ -105,7 +109,27 @@ const TOKEN_PAIRS = {
     contract: 'zig1j55nw46crxkm03fjdf3cqx3py5cd32jny685x9c3gftfdt2xlvjs63znce',
     token1: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin',
     token2: 'uzig'
-  }
+  },
+  'RIFLE/ZIG': {
+    contract: 'zig1ykrfqhhexvr5mhru8xkt6tadt9hfweafzwuwhl5kmscal82769qq2syfqa',
+    token1: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle',
+    token2: 'uzig'
+  },
+  'MOON/ZIG': {
+    contract: 'zig1eqggyhjj23cl3r7j5apnyg7mxrm639zeh46xq24eeccdh922mxjqq0kd4h',
+    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon',
+    token2: 'uzig'
+  },
+  'ALPHA/ZIG': {
+    contract: 'zig1c0m3myg8gr7shg4dra7cprvkha5serfsduet2td6zdj9ern82w4qwx06vc',
+    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha',
+    token2: 'uzig'
+  },
+  'ZMZIG/ZIG': {
+    contract: 'zig15meu4rk66v0wlp59tuewng4rpfvepagpfd8uq9w59rd77ce56dnqftmxn2',
+    token1: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig',
+    token2: 'uzig'
+  },
 };
 
 const TOKEN_DECIMALS = {
@@ -113,18 +137,30 @@ const TOKEN_DECIMALS = {
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 6,
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
+  'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha': 6,
+  'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 6,
 };
 
 const SWAP_SEQUENCE = [
   { from: 'uzig', to: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro', pair: 'ORO/ZIG' },
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
+  { from: 'uzig', to: 'coin.zig10xvc3tkqrdyym6ep9lrt5005mrwvw6rml66qv7jxwnzlpqfmw7ksq7n7nm.rifle', pair: 'RIFLE/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.moon', pair: 'MOON/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.alpha', pair: 'ALPHA/ZIG' },
+  { from: 'uzig', to: 'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig', pair: 'ZMZIG/ZIG' },
 ];
 
 const LIQUIDITY_PAIRS = [
   'ORO/ZIG',
   'NFA/ZIG',
-  'CULTCOIN/ZIG'
+  'CULTCOIN/ZIG',
+  'RIFLE/ZIG',
+  'MOON/ZIG',
+  'ALPHA/ZIG',
+  'ZMZIG/ZIG'
 ];
 
 function getRandomMaxSpread() {
@@ -204,7 +240,8 @@ async function canSwap(pairName, fromDenom, amount, rpcClient) {
     return false;
   }
   const asset = poolInfo.assets.find(a => a.info.native_token?.denom === fromDenom);
-  const poolBalance = asset ? parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[fromDenom]) : 0;
+  const poolBalance = asset ?
+  parseFloat(asset.amount) / Math.pow(10, TOKEN_DECIMALS[fromDenom]) : 0;
   if (poolBalance <= 10 * amount) {
     logger.warn(`[!] Pool ${pairName} terlalu kecil (${poolBalance} ${fromDenom}), skip swap.`);
     return false;
@@ -325,7 +362,6 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const funds = coins(microAmount, fromDenom);
     const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
-
     logger.swap(`Swap ${swapNumber}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
     logger.info(`Max spread swap: ${maxSpread}`);
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
@@ -368,11 +404,9 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
 
     const poolToken1 = parseFloat(poolAsset1.amount) / Math.pow(10, TOKEN_DECIMALS[pair.token1]);
     const poolZIG = parseFloat(poolAsset2.amount) / Math.pow(10, TOKEN_DECIMALS['uzig']);
-
     const ratio = poolToken1 / poolZIG;
     let adjustedToken1 = token1Amount;
     let adjustedZIG = zigAmount;
-
     if (token1Amount / zigAmount > ratio) {
       adjustedToken1 = zigAmount * ratio;
     } else {
@@ -381,7 +415,6 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
 
     const microAmountToken1 = toMicroUnits(adjustedToken1, pair.token1);
     const microAmountZIG = toMicroUnits(adjustedZIG, 'uzig');
-
     if (microAmountToken1 <= 0 || microAmountZIG <= 0) {
       logger.warn(`Skip add liquidity ${pairName}: calculated liquidity amounts are too small.`);
       return null;
@@ -493,7 +526,6 @@ async function executeAllWallets(
         liquidityMaxDelay,
         rpcClient
       );
-      
       logger.success(`All transactions completed for wallet ${walletIndex + 1}!`);
       if (walletIndex < keys.length - 1) {
         console.log();
