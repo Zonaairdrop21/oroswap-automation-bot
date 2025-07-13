@@ -494,8 +494,8 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber) {
       logger.warn(`Skip add liquidity ${pairName}: saldo kurang`);
       return null;
     }
-    const token1Amount = saldoToken1 * 0.05; // Use 5% of balance
-    const zigAmount = saldoZIG * 0.05; // Use 5% of balance
+    const token1Amount = saldoToken1 * 0.01; // Use 1% of balance
+    const zigAmount = saldoZIG * 0.01; // Use 1% of balance
 
     const poolInfo = await getPoolInfo(pair.contract);
     if (!poolInfo) {
