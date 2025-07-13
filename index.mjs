@@ -142,8 +142,8 @@ let removeFailedProxy = false; // New global variable to control removing failed
 // ------------------------------------
 
 function getRandomMaxSpread() {
-  const min = 0.3;
-  const max = 0.31;
+  const min = 0.005;
+  const max = 0.007;
   return (Math.random() * (max - min) + min).toFixed(3);
 }
 
@@ -454,7 +454,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
 
     // Increased slippage tolerance to mitigate 'max spread limit' error
-    const slippageTolerance = "0.1"; // 10% slippage tolerance
+    const slippageTolerance = "0.01"; // 10% slippage tolerance
 
     const msg = {
       swap: {
