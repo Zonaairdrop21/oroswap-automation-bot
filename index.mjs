@@ -130,7 +130,7 @@ const rl = createInterface({
 });
 function prompt(question) {
   return new Promise((resolve) => {
-    rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => {
+    [cite_start]rl.question(`${colors.blue}${question}${colors.reset}`, (answer) => { // Added blue color to prompt [cite: 24]
       resolve(answer.trim());
     });
   });
@@ -208,7 +208,7 @@ async function getBalance(address, denom, rpcClient) {
     const client = await SigningCosmWasmClient.connectWithSigner(RPC_URL, rpcClient);
     const bal = await client.getBalance(address, denom);
     return bal && bal.amount ? parseFloat(bal.amount) / Math.pow(10, TOKEN_DECIMALS[denom] || 6) : 0;
-  [cite_start]} [cite: 41]catch (e) {
+  } catch (e) {
     logger.error("Gagal getBalance: " + e.message);
     return 0;
   }
@@ -222,7 +222,7 @@ async function getUserPoints(address) {
     if (data && typeof data.point !== 'undefined') return data.point;
     if (data && data.data && typeof data.data.point !== 'undefined') return data.data.point;
     return 0;
-  [cite_start]} [cite: 44, 45]catch (e) {
+  } catch (e) {
     return 0;
   }
 }
@@ -316,10 +316,10 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const funds = coins(microAmount, fromDenom);
     const fromSymbol = TOKEN_SYMBOLS[fromDenom] || fromDenom;
     const toSymbol = TOKEN_SYMBOLS[toDenom] || toDenom;
-    logger.swap(`Swap ${colors.magenta}${swapNumber}${colors.cyan}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`);
-    logger.info(`Max spread swap: ${colors.magenta}${maxSpread}${colors.reset}`);
+    logger.swap(`Swap ${colors.magenta}${swapNumber}${colors.cyan}: ${amount.toFixed(5)} ${fromSymbol} -> ${toSymbol}`); [cite_start]// Added magenta color to swap number [cite: 68]
+    logger.info(`Max spread swap: ${colors.magenta}${maxSpread}${colors.reset}`); [cite_start]// Added magenta color to max spread [cite: 66]
     const result = await client.execute(address, pair.contract, msg, 'auto', 'Swap', funds);
-    logger.swapSuccess(`Complete swap ${colors.magenta}${swapNumber}${colors.green}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`);
+    logger.swapSuccess(`Complete swap ${colors.magenta}${swapNumber}${colors.green}: ${fromSymbol} -> ${toSymbol} | Tx: ${EXPLORER_URL}${result.transactionHash}`); [cite_start]// Added magenta color to swap number [cite: 69]
     return result;
   } catch (error) {
     logger.error(`Swap ${swapNumber} failed: ${error.message}`);
@@ -374,7 +374,7 @@ async function addLiquidity(wallet, address, pairName, liquidityNumber, rpcClien
       return null;
     }
 
-    logger.liquidity(`Liquidity ${colors.magenta}${liquidityNumber}${colors.cyan}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`);
+    logger.liquidity(`Liquidity ${colors.magenta}${liquidityNumber}${colors.cyan}: Adding (5%) ${adjustedToken1.toFixed(6)} ${TOKEN_SYMBOLS[pair.token1]} + ${adjustedZIG.toFixed(6)} ZIG`); // Added magenta color to liquidity number
     const msg = {
       provide_liquidity: {
         assets: [
@@ -594,9 +594,9 @@ async function main() {
   let useProxy = false;
   let proxies = [];
   while (true) {
-    console.log(`${colors.blue}Choose proxy type:${colors.reset}`);
-    console.log(`${colors.blue}1. Private Proxy (from proxy.txt)${colors.reset}`);
-    console.log(`${colors.blue}2. No Proxy${colors.reset}`);
+    console.log(`${colors.blue}Choose proxy type:${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
+    console.log(`${colors.blue}1. Private Proxy (from proxy.txt)${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
+    console.log(`${colors.blue}2. No Proxy${colors.reset}`); [cite_start]// Added blue color to prompt text [cite: 133]
     const choice = await prompt('Enter choice (1 or 2): ');
     if (choice === '1') {
       proxies = await loadProxies();
