@@ -1,14 +1,13 @@
 import dotenv from 'dotenv';
 import { createInterface } from 'node:readline';
-import { readFile } from 'node:fs/promises'; // Import readFile for file operations
+import { readFile } from 'node:fs/promises';
 
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import pkg from '@cosmjs/stargate';
 const { GasPrice, coins } = pkg;
 import pkg2 from '@cosmjs/proto-signing';
 const { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } = pkg2;
-import pkg_tendermintRpc from '@cosmjs/tendermint-rpc'; // Corrected import for CommonJS module
-const { HttpBatchClient, JsonRpcClient } = pkg_tendermintRpc; // Destructure from default export
+import { HttpBatchClient, JsonRpcClient } from '@cosmjs/tendermint-rpc'; // Corrected import
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -85,7 +84,7 @@ const display_welcome_screen = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate time.sleep(1)
 };
 
-const RPC_URL = 'https://testnet-rpc.zigchain.com';
+const RPC_URL = 'https://rpc.zigscan.net/';
 const API_URL = 'https://testnet-api.zigchain.com';
 const EXPLORER_URL = 'https://zigscan.org/tx/';
 const GAS_PRICE = GasPrice.fromString('0.026uzig');
@@ -511,7 +510,10 @@ async function executeAllWallets(
       logger.error(`Error processing wallet ${walletIndex + 1}: ${error.message}`);
     } finally {
         if (rpcClient && typeof rpcClient.disconnect === 'function') {
-            rpcClient.disconnect();
+            // Check if disconnect method exists before calling
+            if (rpcClient instanceof HttpBatchClient || rpcClient instanceof JsonRpcClient) {
+                 await rpcClient.disconnect();
+            }
         }
     }
   }
