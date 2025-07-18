@@ -166,8 +166,8 @@ async function getAccountAddress(wallet) {
 }
 
 function getRandomSwapAmount() {
-  const min = 0.0051;
-  const max = 0.0072;
+  const min = 0.01;
+  const max = 0.012;
   return Math.random() * (max - min) + min;
 }
 
@@ -302,7 +302,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const microAmount = toMicroUnits(amount, fromDenom);
     const poolInfo = await getPoolInfo(pair.contract, rpcClient);
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
-    const maxSpread = "0.3";
+    const maxSpread = "0.6";
     const msg = {
       swap: {
         belief_price: beliefPrice,
