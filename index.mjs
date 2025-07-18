@@ -75,9 +75,9 @@ const display_welcome_screen = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 };
 const RPC_URL = 'https://rpc.zigscan.net/';
-const API_URL = 'https://testnet-api.zigchain.com';
+const API_URL = 'https://testnet-api.oroswap.org/api/';
 const EXPLORER_URL = 'https://zigscan.org/tx/';
-const GAS_PRICE = GasPrice.fromString('0.026uzig');
+const GAS_PRICE = GasPrice.fromString('0.03uzig');
 const TOKEN_SYMBOLS = {
   'uzig': 'ZIG',
   'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uoro': 'ORO',
