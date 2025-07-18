@@ -302,7 +302,7 @@ async function performSwap(wallet, address, amount, pairName, swapNumber, fromDe
     const microAmount = toMicroUnits(amount, fromDenom);
     const poolInfo = await getPoolInfo(pair.contract, rpcClient);
     const beliefPrice = calculateBeliefPrice(poolInfo, pairName, fromDenom);
-    const maxSpread = "0.5";
+    const maxSpread = "0.3";
     const msg = {
       swap: {
         belief_price: beliefPrice,
