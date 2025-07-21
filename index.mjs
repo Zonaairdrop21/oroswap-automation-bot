@@ -83,7 +83,7 @@ const TOKEN_SYMBOLS = {
   'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 'ZMZIG',
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 'NFA',
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 'CULTCOIN',
-  'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uor': 'ORO', // Added ORO token
+  'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uor': 'ORO',
 };
 const TOKEN_PAIRS = {
   'ZMZIG/ZIG': {
@@ -101,7 +101,7 @@ const TOKEN_PAIRS = {
     token1: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin',
     token2: 'uzig'
   },
-  'ORO/ZIG': { // Added ORO/ZIG pair
+  'ORO/ZIG': {
     contract: 'zig15jqg0hmp9n06q0as7uk3x9xkwr9k3r7yh4ww2uc0hek8zlryrgmsamk4qg',
     token1: 'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uor',
     token2: 'uzig'
@@ -112,17 +112,23 @@ const TOKEN_DECIMALS = {
   'coin.zig1zpnw5dtzzttmgtdjgtywt08wnlyyskpuupy3cfw8mytlslx54j9sgz6w4n.zmzig': 6,
   'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa': 6,
   'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin': 6,
-  'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uor': 6, // Added ORO decimals
+  'coin.zig10rfjm85jmzfhravjwpq3hcdz8ngxg7lxd0drkr.uor': 6,
 };
 const SWAP_SEQUENCE = [
+  // ZIG -> NFA
   { from: 'uzig', to: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', pair: 'NFA/ZIG' },
+  // NFA -> ZIG
+  { from: 'coin.zig1qaf4dvjt5f8naam2mzpmysjm5e8sp2yhrzex8d.nfa', to: 'uzig', pair: 'NFA/ZIG' },
+  // ZIG -> CULTCOIN
   { from: 'uzig', to: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', pair: 'CULTCOIN/ZIG' },
+  // CULTCOIN -> ZIG
+  { from: 'coin.zig12jgpgq5ec88nwzkkjx7jyrzrljpph5pnags8sn.ucultcoin', to: 'uzig', pair: 'CULTCOIN/ZIG' },
 ];
 const LIQUIDITY_PAIRS = [
   'ZMZIG/ZIG',
   'NFA/ZIG',
   'CULTCOIN/ZIG',
-  'ORO/ZIG' // Added ORO/ZIG to liquidity pairs
+  'ORO/ZIG'
 ];
 
 function getRandomMaxSpread() {
@@ -276,11 +282,16 @@ function calculateBeliefPrice(poolInfo, pairName, fromDenom) {
       }
     });
     let price;
+    // Determine the price based on which token is being swapped from
     if (fromDenom === pair.token1) {
       price = amountToken2 / amountToken1;
-    } else {
+    } else if (fromDenom === pair.token2) {
       price = amountToken1 / amountToken2;
+    } else {
+      logger.warn(`Belief price fallback to 1: Unknown 'from' denom ${fromDenom} for pair ${pairName}`);
+      return "1";
     }
+
     logger.info(`Belief price untuk ${pairName}: ${price.toFixed(18)}`);
     return price.toFixed(18);
   } catch (err) {
